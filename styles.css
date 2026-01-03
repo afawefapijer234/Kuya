@@ -12,6 +12,7 @@
   --glass2: rgba(255,255,255,.42);
   --shadow: 0 18px 60px rgba(0,0,0,.12);
   --radius: 22px;
+  }
 
 *{ box-sizing:border-box; }
 html,body{ height:100%; }
@@ -267,6 +268,24 @@ a:focus{ outline:2px solid rgba(10,10,12,.18); outline-offset:3px; border-radius
   font-size: clamp(36px, 4vw, 54px);
   letter-spacing:-0.03em;
 }
+.mobileHeader{
+  display:flex;
+  flex-direction:column;
+  gap: 12px;
+}
+
+.mobileIdentity{
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
+}
+
+.mobileMeta{
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
+  align-items:flex-start;
+}
 .bio{
   margin: 0 0 12px;
   color: var(--muted);
@@ -397,6 +416,162 @@ a:focus{ outline:2px solid rgba(10,10,12,.18); outline-offset:3px; border-radius
   color: rgba(10,10,12,.55);
   font-size: 13px;
   text-align:right;
+}
+
+.tumblrSection{
+  margin: 22px 2px 10px;
+  display:flex;
+  flex-direction:column;
+  gap: 12px;
+}
+
+.tumblrFeed{
+  display:flex;
+  flex-direction:column;
+  gap: 12px;
+}
+
+.tumblrItem{
+  display:flex;
+  flex-direction:column;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(10,10,12,.10);
+  background: rgba(255,255,255,.70);
+  transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.tumblrItem:hover{
+  transform: translateY(-2px);
+  border-color: rgba(10,10,12,.14);
+  box-shadow: 0 10px 24px rgba(10,10,12,.08);
+}
+
+.tumblrMeta{
+  font-size: 12px;
+  letter-spacing:.06em;
+  text-transform: uppercase;
+  color: rgba(10,10,12,.55);
+}
+
+.tumblrTitle{
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing:-0.01em;
+}
+
+.tumblrExcerpt{
+  font-size: 13px;
+  color: rgba(10,10,12,.62);
+  line-height: 1.4;
+}
+
+@media (max-width: 760px){
+  body{
+    font-size: 15px;
+  }
+
+  .shell{
+    padding: 16px 14px 36px;
+  }
+
+  .layout{
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .left{
+    position: static;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .left.glass{
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .avatarWrap,
+  .bio,
+  .fine{
+    display:none;
+  }
+
+  .mobileHeader{
+    width: 100%;
+    flex-direction:row;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap: 20px;
+  }
+
+  .mobileIdentity{
+    gap: 4px;
+  }
+
+  .mobileMeta{
+    align-items:flex-end;
+    gap: 4px;
+    text-align:right;
+  }
+
+  .name{
+    font-size: 18px;
+    margin: 0;
+  }
+
+  .contact{
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    gap: 6px;
+    font-size: 13px;
+  }
+
+  .contact .icon{
+    display:none;
+  }
+
+  .bpmMini{
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .bpmValue{
+    color: #e75b5b;
+    font-size: 14px;
+  }
+
+  .pills{
+    margin-top: 0;
+    gap: 8px;
+  }
+
+  .pill{
+    padding: 0;
+    border: none;
+    background: transparent;
+    font-size: 12px;
+    text-transform: lowercase;
+  }
+
+  .rightHeader{
+    flex-direction:column;
+    align-items:flex-start;
+    gap: 4px;
+  }
+
+  .sectionHint{
+    text-align:left;
+  }
 }
 
 .grid{
