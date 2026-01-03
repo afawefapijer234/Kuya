@@ -71,8 +71,6 @@ a:focus{ outline:2px solid rgba(10,10,12,.18); outline-offset:3px; border-radius
 
 /* glass primitives */
 .glass{
-  background: linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.46));
-  border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   backdrop-filter: blur(14px);
