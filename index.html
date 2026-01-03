@@ -4,73 +4,74 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>KUYA</title>
-  <meta name="description" content="Graphic + fashion designer and content creator focused on design storytelling." />
-  <meta name="theme-color" content="#0b0b0f" />
+  <meta name="description" content="Links + work." />
 
-  <!-- Open Graph -->
-  <meta property="og:title" content="KUYA" />
-  <meta property="og:description" content="Graphic + fashion designer and content creator focused on design storytelling." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://kuya.design" />
-
-  <link rel="icon" href="assets/avatar.png" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
-  <main class="wrap">
-    <header class="hero">
-      <img class="avatar" src="assets/avatar.png" alt="KUYA avatar" />
-      <h1>KUYA</h1>
-      <p class="bio">I’m a graphic + fashion designer and content creator focused on design storytelling.</p>
-      <a class="email" href="mailto:t@kuya.design">t@kuya.design</a>
+  <main class="page">
+    <header class="top">
+      <div class="pfp" aria-hidden="true"></div>
 
-      <div class="social">
-        <a class="chip" href="https://instagram.com/kuya" target="_blank" rel="noreferrer">Instagram</a>
-        <a class="chip" href="https://tiktok.com/@kuya5k" target="_blank" rel="noreferrer">TikTok</a>
-        <a class="chip" href="https://www.youtube.com/@TAKUYA" target="_blank" rel="noreferrer">YouTube</a>
+      <h1 class="name">Kuya</h1>
+      <p class="tagline">Design + fashion. Storytelling. Objects from an alternate timeline.</p>
+
+      <div class="row">
+        <a class="pill" href="mailto:t@kuya.design">t@kuya.design</a>
+        <a class="pill ghost" href="https://instagram.com/" target="_blank" rel="noreferrer">IG</a>
+        <a class="pill ghost" href="https://tiktok.com/" target="_blank" rel="noreferrer">TT</a>
+        <a class="pill ghost" href="https://youtube.com/" target="_blank" rel="noreferrer">YT</a>
       </div>
     </header>
 
-    <section class="links" aria-label="Links">
-      <a class="card" href="https://discord.com" target="_blank" rel="noreferrer">
-        <div class="cardTitle">Latest video</div>
-        <div class="cardDesc">Discord Community</div>
+    <section class="grid" aria-label="Links">
+      <!-- Big primary -->
+      <a class="tile big" href="https://polyconveniencestore.com" target="_blank" rel="noreferrer">
+        <div class="kicker">Brand</div>
+        <div class="title">(p)OLY Convenience Store</div>
+        <div class="sub">Shop / drops / archive</div>
       </a>
 
-      <a class="card" href="https://polyconveniencestore.com" target="_blank" rel="noreferrer">
-        <div class="cardTitle">My clothing brand</div>
-        <div class="cardDesc">(p)OLY Convenience Store</div>
+      <a class="tile big" href="https://www.are.na/" target="_blank" rel="noreferrer">
+        <div class="kicker">Research</div>
+        <div class="title">Are.na</div>
+        <div class="sub">References + moodboards</div>
       </a>
 
-      <a class="card" href="https://www.are.na/" target="_blank" rel="noreferrer">
-        <div class="cardTitle">ARE.NA page</div>
-        <div class="cardDesc">Research / references</div>
+      <!-- Standard tiles -->
+      <a class="tile" href="https://discord.com" target="_blank" rel="noreferrer">
+        <div class="kicker">Community</div>
+        <div class="title">Discord</div>
+        <div class="sub">9:08 / accountability</div>
       </a>
 
-      <a class="card" href="https://kuya.notion.site" target="_blank" rel="noreferrer">
-        <div class="cardTitle">Bookshelf</div>
-        <div class="cardDesc">Notion</div>
+      <a class="tile" href="https://kuya.notion.site" target="_blank" rel="noreferrer">
+        <div class="kicker">Writing</div>
+        <div class="title">Bookshelf</div>
+        <div class="sub">Notes + reading</div>
       </a>
 
-      <a class="card" href="https://amzn.to/" target="_blank" rel="noreferrer">
-        <div class="cardTitle">Kinto Glass Set</div>
-        <div class="cardDesc">Amazon</div>
+      <a class="tile" href="https://amzn.to/" target="_blank" rel="noreferrer">
+        <div class="kicker">Gear</div>
+        <div class="title">Kinto glass set</div>
+        <div class="sub">Amazon</div>
       </a>
 
-      <a class="card" href="https://singular.care" target="_blank" rel="noreferrer">
-        <div class="cardTitle">Toothbrush</div>
-        <div class="cardDesc">singular.care</div>
+      <a class="tile" href="https://singular.care" target="_blank" rel="noreferrer">
+        <div class="kicker">Daily</div>
+        <div class="title">Toothbrush</div>
+        <div class="sub">singular.care</div>
       </a>
     </section>
 
-    <footer class="foot">
-      <span>© <span id="year"></span> KUYA</span>
+    <footer class="footer">
+      <span>© <span id="y"></span> Kuya</span>
     </footer>
   </main>
 
   <script>
-    document.getElementById("year").textContent = new Date().getFullYear();
+    document.getElementById("y").textContent = new Date().getFullYear();
   </script>
 </body>
 </html>
