@@ -17,56 +17,47 @@
   <main class="shell">
     <section class="layout">
       <!-- LEFT -->
-      <aside class="left glass">
-        <div class="avatarWrap">
-          <img class="avatar" src="assets/avatar.png" alt="KUYA avatar" onerror="this.style.display='none'; this.closest('.avatarWrap').classList.add('fallback');" />
-          <div class="avatarFallback" aria-hidden="true">
-            <span>KUYA</span>
-          </div>
-          <div class="ring" aria-hidden="true"></div>
-        </div>
+<aside class="left glass">
+  <div class="avatarWrap">
+    <img class="avatar" src="assets/avatar.png" alt="KUYA avatar"
+      onerror="this.style.display='none'; this.closest('.avatarWrap').classList.add('fallback');" />
+    <div class="avatarFallback" aria-hidden="true"><span>KUYA</span></div>
+    <div class="ring" aria-hidden="true"></div>
+  </div>
 
-        <h1 class="name">KUYA</h1>
-        <p class="bio">I’m a graphic + fashion designer and content creator focused on design storytelling.</p>
+  <!-- BPM directly under avatar (smaller) -->
+  <div class="bpmMini glass2" aria-label="Current BPM">
+    <span class="bpmLabel">BPM</span>
+    <span class="bpmValue" id="bpm">—</span>
+  </div>
 
-        <a class="contact" href="mailto:t@kuya.design">
-          <span class="icon">✉</span>
-          <span>t@kuya.design</span>
-        </a>
+  <h1 class="name">KUYA</h1>
+  <p class="bio">I’m a graphic + fashion designer and content creator focused on design storytelling.</p>
 
-        <div class="metaRow">
-          <div class="mini glass2">
-            <div class="miniLabel">Current BPM</div>
-            <div class="miniValue">
-              <span id="bpm">—</span>
-              <span class="unit">bpm</span>
-            </div>
-            <div class="sparkline" aria-hidden="true">
-              <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-            </div>
-          </div>
+  <a class="contact" href="mailto:t@kuya.design">
+    <span class="icon">✉</span>
+    <span>t@kuya.design</span>
+  </a>
 
-          <div class="mini glass2">
-            <div class="miniLabel">Local time</div>
-            <div class="miniValue">
-              <span id="clock">—</span>
-            </div>
-            <div class="miniHint" id="tz">—</div>
-          </div>
-        </div>
+  <!-- keep time (optional) -->
+  <div class="mini glass2">
+    <div class="miniLabel">Local time</div>
+    <div class="miniValue"><span id="clock">—</span></div>
+    <div class="miniHint" id="tz">—</div>
+  </div>
 
-        <div class="pills">
-          <a class="pill" href="https://tiktok.com/@kuya5k" target="_blank" rel="noreferrer">TikTok</a>
-          <a class="pill" href="https://instagram.com/" target="_blank" rel="noreferrer">Instagram</a>
-          <a class="pill" href="https://www.youtube.com/@TAKUYA" target="_blank" rel="noreferrer">YouTube</a>
-          <a class="pill ghost" href="https://www.are.na/" target="_blank" rel="noreferrer">Are.na</a>
-        </div>
+  <div class="pills">
+    <a class="pill" href="https://tiktok.com/@kuya5k" target="_blank" rel="noreferrer">TikTok</a>
+    <a class="pill" href="https://instagram.com/" target="_blank" rel="noreferrer">Instagram</a>
+    <a class="pill" href="https://www.youtube.com/@TAKUYA" target="_blank" rel="noreferrer">YouTube</a>
+    <a class="pill ghost" href="https://www.are.na/" target="_blank" rel="noreferrer">Are.na</a>
+  </div>
 
-        <div class="fine">
-          <span class="dot" aria-hidden="true"></span>
-          <span id="status">online</span>
-        </div>
-      </aside>
+  <div class="fine">
+    <span class="dot" aria-hidden="true"></span>
+    <span id="status">online</span>
+  </div>
+</aside>
 
       <!-- RIGHT -->
       <section class="right">
@@ -77,23 +68,26 @@
 
         <div class="grid">
           <!-- BIG: YouTube -->
-          <a class="tile big glass" href="https://www.youtube.com/@TAKUYA" target="_blank" rel="noreferrer">
+          <a class="tile big glass ytCard" id="ytCard" href="https://www.youtube.com/@TAKUYA" target="_blank" rel="noreferrer">
             <div class="tileTop">
               <div class="badge yt">▶</div>
               <div>
-                <div class="title">TAKUYA</div>
-                <div class="sub">YouTube channel</div>
+                <div class="title" id="ytChannelName">TAKUYA</div>
+                <div class="sub">
+                  <span id="ytSubs">—</span> subscribers
+                </div>
               </div>
               <div class="cta">Subscribe</div>
             </div>
-
-            <div class="thumbRow">
-              <div class="thumb"></div>
-              <div class="thumb"></div>
-              <div class="thumb"></div>
-              <div class="thumb"></div>
+          
+            <div class="ytHero">
+              <img id="ytThumb" class="ytThumb" alt="Latest video thumbnail" />
+              <div class="ytMeta">
+                <div class="ytLatestLabel">Latest video</div>
+                <div id="ytTitle" class="ytTitle">—</div>
+              </div>
             </div>
-
+          
             <div class="corner" aria-hidden="true"></div>
           </a>
 
