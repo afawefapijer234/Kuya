@@ -1,282 +1,177 @@
 // ====== CONFIG ======
-const YT_CHANNEL_ID = "UCuDJUj1szS87hLRjXQKnmaA";
-const YT_CHANNEL_FALLBACK_URL = "https://www.youtube.com/@houseoftakuya";
 const TUMBLR_RSS_URLS = [
-  "https://www.tumblr.com/blog/takuyakitano/rss",
-  "https://takuyakitano.tumblr.com/rss"
+  "https://takuyakitano.tumblr.com/rss",
+  "https://www.tumblr.com/blog/takuyakitano/rss"
 ];
 
-// ====== HUD ======
+// ====== BPM (light, just vibes) ======
 const bpmEl = document.getElementById("bpm");
-const clockEl = document.getElementById("clock");
-const tzEl = document.getElementById("tz");
-const statusEl = document.getElementById("status");
-const dot = document.querySelector(".dot");
 
-// YouTube UI (Bento-style 2x2 grid)
-const ytGrid = document.getElementById("ytGrid");
-const ytSubs = document.getElementById("ytSubs");
-const ytChannelName = document.getElementById("ytChannelName");
-const ytCard = document.getElementById("ytCard");
-const tumblrFeed = document.getElementById("tumblrFeed");
-
-function pad(n){ return String(n).padStart(2, "0"); }
-
-function updateClock(){
-  if(!clockEl) return;
-  const d = new Date();
-  clockEl.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  try{
-    if(tzEl) tzEl.textContent = Intl.DateTimeFormat().resolvedOptions().timeZone || "local";
-  }catch{
-    if(tzEl) tzEl.textContent = "local";
-  }
-}
-
-// BPM behavior
-let base = 72;
+// Nice calm BPM drift
+let base = 70;
 let drift = 0;
-let bpm = base;
 
 function tickBpm(){
   if(!bpmEl) return;
 
-  drift += (Math.random() - 0.5) * 0.6;
-  drift = Math.max(-10, Math.min(14, drift));
+  drift += (Math.random() - 0.5) * 0.35;
+  drift = Math.max(-8, Math.min(10, drift));
 
-  const noise = (Math.random() - 0.5) * 2.4;
-  const scroll = Math.min(8, (window.scrollY / 120));
-
-  bpm = Math.round(base + drift + noise + scroll);
-  bpm = Math.max(58, Math.min(132, bpm));
+  const noise = (Math.random() - 0.5) * 1.2;
+  const bpm = Math.round(Math.max(58, Math.min(132, base + drift + noise)));
 
   bpmEl.textContent = bpm;
-
-  if(dot){
-    const pulse = 0.95 + (bpm - 60) / 260;
-    dot.style.transform = `scale(${pulse})`;
-  }
 }
 
-function updateOnline(){
-  const on = navigator.onLine;
-  if(statusEl) statusEl.textContent = on ? "online" : "offline";
-  if(!dot) return;
-  dot.style.background = on ? "rgba(0,160,120,.70)" : "rgba(220,80,80,.70)";
-  dot.style.boxShadow = on ? "0 0 18px rgba(0,160,120,.35)" : "0 0 18px rgba(220,80,80,.30)";
-}
-
-// ====== YOUTUBE: auto latest 4 via RSS (no API key), filter out Shorts fast ======
-function xmlAllBetween(xml, startTag, endTag){
-  const out = [];
-  let i = 0;
-  while(true){
-    const s = xml.indexOf(startTag, i);
-    if(s === -1) break;
-    const e = xml.indexOf(endTag, s + startTag.length);
-    if(e === -1) break;
-    out.push(xml.slice(s + startTag.length, e).trim());
-    i = e + endTag.length;
-  }
-  return out;
-}
-
-// Escaped XML entities minimal decode
-function decodeXml(s){
-  return String(s || "")
-    .replaceAll("&amp;", "&")
-    .replaceAll("&lt;", "<")
-    .replaceAll("&gt;", ">")
-    .replaceAll("&quot;", "\"")
-    .replaceAll("&#39;", "'");
-}
-
-function stripHtml(s){
-  return String(s || "")
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+// ====== FEED helpers ======
+const feedEl = document.getElementById("tumblrFeed");
 
 async function fetchRaw(url){
-  // Try direct fetch first (some environments allow it),
-  // fallback to AllOrigins proxy.
+  // Try direct first
   try{
     const r = await fetch(url, { cache: "no-store" });
     if(r.ok) return await r.text();
   }catch{}
+  // Proxy fallback (CORS)
   const proxied = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
   const r2 = await fetch(proxied, { cache: "no-store" });
   if(!r2.ok) throw new Error("fetch failed");
   return await r2.text();
 }
 
-async function loadLatest4FromRss(){
-  if(!ytGrid) return;
+function textFromHtml(html){
+  const doc = new DOMParser().parseFromString(html || "", "text/html");
+  const t = (doc.body?.textContent || "").replace(/\s+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+  return t;
+}
 
-  const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${YT_CHANNEL_ID}`;
-  const xml = await fetchRaw(feedUrl);
+function imagesFromHtml(html){
+  const doc = new DOMParser().parseFromString(html || "", "text/html");
+  const imgs = Array.from(doc.images || [])
+    .map(img => img.getAttribute("src"))
+    .filter(Boolean);
+  // De-dupe
+  return Array.from(new Set(imgs));
+}
 
-  // Channel name (if present)
-  const name = xmlAllBetween(xml, "<name>", "</name>")[0];
-  if(name && ytChannelName) ytChannelName.textContent = decodeXml(name);
+function formatDate(pubDate){
+  if(!pubDate) return "";
+  const d = new Date(pubDate);
+  if(Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
 
-  // Split into entry blocks
-  const entries = xml.split("<entry>").slice(1).map(s => "<entry>" + s);
+function renderPosts(posts){
+  if(!feedEl) return;
 
-  // Filter out Shorts by requiring the alternate link to be watch?v= (most reliable cheap signal)
-  const picked = [];
-  for(const entry of entries){
-    const altLink = (entry.match(/<link[^>]+rel="alternate"[^>]+href="([^"]+)"/) || [])[1] || "";
-    if(!altLink.includes("/watch?v=")) continue; // skips /shorts/
+  feedEl.innerHTML = "";
 
-    const id = (entry.match(/<yt:videoId>([^<]+)<\/yt:videoId>/) || [])[1];
-    const titleRaw = (entry.match(/<title>([^<]+)<\/title>/) || [])[1];
-
-    if(!id) continue;
-    picked.push({ id, title: decodeXml(titleRaw || "YouTube video") });
-    if(picked.length >= 4) break;
-  }
-
-  // Fallback: if parsing fails for some reason, just show first 4 IDs
-  if(!picked.length){
-    const idsAll = xmlAllBetween(xml, "<yt:videoId>", "</yt:videoId>").slice(0, 4);
-    const titlesAll = xmlAllBetween(xml, "<title>", "</title>").slice(0, 4).map(decodeXml);
-    idsAll.forEach((id, i) => picked.push({ id, title: titlesAll[i] || "YouTube video" }));
-  }
-
-  if(ytCard) ytCard.href = YT_CHANNEL_FALLBACK_URL;
-
-  ytGrid.innerHTML = "";
-  picked.forEach(({ id, title }) => {
-    const videoUrl = `https://www.youtube.com/watch?v=${id}`;
-    const thumbUrl = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
-
+  posts.forEach(p => {
     const a = document.createElement("a");
-    a.className = "ytItem";
-    a.href = videoUrl;
+    a.className = "post";
+    a.href = p.link || "#";
     a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    a.title = title;
-    a.setAttribute("aria-label", title);
+    a.rel = "noreferrer";
 
-    const img = document.createElement("img");
-    img.loading = "lazy";
-    img.decoding = "async";
-    img.alt = title;
-    img.src = thumbUrl;
+    const meta = document.createElement("div");
+    meta.className = "postMeta";
 
-    a.appendChild(img);
-    ytGrid.appendChild(a);
+    const left = document.createElement("div");
+    left.className = "postTitle";
+    left.textContent = p.title || "post";
+
+    const right = document.createElement("div");
+    right.className = "postDate";
+    right.textContent = p.date || "";
+
+    meta.append(left, right);
+
+    const body = document.createElement("div");
+    body.className = "postBody";
+
+    if(p.text){
+      const t = document.createElement("div");
+      t.className = "postText";
+      t.textContent = p.text;
+      body.appendChild(t);
+    }
+
+    if(p.images && p.images.length){
+      const imgs = document.createElement("div");
+      imgs.className = "postImages" + (p.images.length >= 2 ? " twoCol" : "");
+      p.images.slice(0, 4).forEach(src => {
+        const img = document.createElement("img");
+        img.loading = "lazy";
+        img.decoding = "async";
+        img.alt = p.title || "Tumblr image";
+        img.src = src;
+        imgs.appendChild(img);
+      });
+      body.appendChild(imgs);
+    }
+
+    a.append(meta, body);
+    feedEl.appendChild(a);
   });
+
+  if(!posts.length){
+    feedEl.textContent = "No posts yet.";
+  }
 }
 
 async function loadTumblrFeed(){
-  if(!tumblrFeed) return;
-  try{
-    let xml = "";
-    let lastError = null;
-    for(const url of TUMBLR_RSS_URLS){
-      try{
-        xml = await fetchRaw(url);
-        if(xml) break;
-      }catch(err){
-        lastError = err;
-      }
+  if(!feedEl) return;
+
+  feedEl.textContent = "Loading…";
+
+  let xml = "";
+  let lastErr = null;
+
+  for(const url of TUMBLR_RSS_URLS){
+    try{
+      xml = await fetchRaw(url);
+      if(xml) break;
+    }catch(e){
+      lastErr = e;
     }
-    if(!xml){
-      throw lastError || new Error("feed unavailable");
-    }
-    const items = xml.split("<item>").slice(1).map(s => "<item>" + s);
-    const picked = items.slice(0, 6).map((item) => {
-      const title = decodeXml((item.match(/<title>([^<]+)<\/title>/) || [])[1] || "Untitled");
-      const link = decodeXml((item.match(/<link>([^<]+)<\/link>/) || [])[1] || TUMBLR_RSS_URLS[0]);
-      const pubDate = decodeXml((item.match(/<pubDate>([^<]+)<\/pubDate>/) || [])[1] || "");
-      const descriptionRaw = decodeXml((item.match(/<description>([\s\S]*?)<\/description>/) || [])[1] || "");
-      const description = stripHtml(descriptionRaw).slice(0, 140);
-      return { title, link, pubDate, description };
-    });
-
-    tumblrFeed.innerHTML = "";
-
-    picked.forEach(({ title, link, pubDate, description }) => {
-      const item = document.createElement("a");
-      item.className = "tumblrItem";
-      item.href = link;
-      item.target = "_blank";
-      item.rel = "noreferrer";
-
-      const meta = document.createElement("div");
-      meta.className = "tumblrMeta";
-      if(pubDate){
-        const d = new Date(pubDate);
-        meta.textContent = Number.isNaN(d.getTime())
-          ? "Tumblr"
-          : d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-      }else{
-        meta.textContent = "Tumblr";
-      }
-
-      const titleEl = document.createElement("div");
-      titleEl.className = "tumblrTitle";
-      titleEl.textContent = title;
-
-      const excerpt = document.createElement("div");
-      excerpt.className = "tumblrExcerpt";
-      excerpt.textContent = description;
-
-      item.append(meta, titleEl);
-      if(description) item.append(excerpt);
-      tumblrFeed.append(item);
-    });
-
-    if(!picked.length){
-      tumblrFeed.textContent = "No posts yet.";
-    }
-  }catch{
-    tumblrFeed.textContent = "Unable to load Tumblr feed.";
   }
-}
 
-// ====== SUBSCRIBERS (no API key) via Shields JSON ======
-function compactNumberString(s){
-  const txt = String(s || "—").trim();
-  if(/[KM]$/i.test(txt)) return txt;
-  const n = Number(txt.replace(/[^\d.]/g, ""));
-  if(!Number.isFinite(n)) return txt;
-  if(n >= 1e6) return `${(n/1e6).toFixed(2).replace(/\.00$/,'')}M`;
-  if(n >= 1e3) return `${(n/1e3).toFixed(2).replace(/\.00$/,'')}K`;
-  return String(n);
-}
+  if(!xml){
+    feedEl.textContent = "Unable to load Tumblr feed.";
+    return;
+  }
 
-async function loadSubs(){
-  if(!ytSubs) return;
-  try{
-    const url = `https://img.shields.io/youtube/channel/subscribers/${YT_CHANNEL_ID}.json`;
-    const res = await fetch(url, { cache: "no-store" });
-    if(!res.ok) return;
-    const data = await res.json();
-    const v = data?.value || data?.message || "—";
-    ytSubs.textContent = compactNumberString(v);
-  }catch{}
+  const doc = new DOMParser().parseFromString(xml, "text/xml");
+  const items = Array.from(doc.querySelectorAll("item")).slice(0, 12);
+
+  const posts = items.map(item => {
+    const title = item.querySelector("title")?.textContent?.trim() || "";
+    const link = item.querySelector("link")?.textContent?.trim() || "";
+    const pubDate = item.querySelector("pubDate")?.textContent?.trim() || "";
+    const desc = item.querySelector("description")?.textContent || "";
+
+    const images = imagesFromHtml(desc);
+    const text = textFromHtml(desc);
+
+    // Keep it readable: if it’s only an image post, don’t force text.
+    const trimmedText = text.length > 400 ? (text.slice(0, 400) + "…") : text;
+
+    return {
+      title: title || "post",
+      link,
+      date: formatDate(pubDate),
+      text: images.length && !trimmedText ? "" : trimmedText,
+      images
+    };
+  });
+
+  renderPosts(posts);
 }
 
 // ====== INIT ======
-const yearEl = document.getElementById("year");
-if(yearEl) yearEl.textContent = new Date().getFullYear();
-
-updateClock();
-updateOnline();
 tickBpm();
+setInterval(tickBpm, 900);
 
-setInterval(updateClock, 1000 * 10);
-setInterval(tickBpm, 850);
-
-window.addEventListener("online", updateOnline);
-window.addEventListener("offline", updateOnline);
-window.addEventListener("scroll", () => tickBpm());
-
-// YouTube loads
-loadLatest4FromRss().catch(() => {});
-loadSubs().catch(() => {});
-loadTumblrFeed().catch(() => {});
+loadTumblrFeed().catch(() => {
+  if(feedEl) feedEl.textContent = "Unable to load Tumblr feed.";
+});
