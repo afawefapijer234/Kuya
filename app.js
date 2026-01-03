@@ -1,5 +1,6 @@
 // ====== CONFIG ======
 const YT_CHANNEL_ID = "UCuDJUj1szS87hLRjXQKnmaA";
+const YT_CHANNEL_FALLBACK_URL = "https://www.youtube.com/@houseoftakuya";
 
 // ====== HUD ======
 const bpmEl = document.getElementById("bpm");
@@ -8,9 +9,8 @@ const tzEl = document.getElementById("tz");
 const statusEl = document.getElementById("status");
 const dot = document.querySelector(".dot");
 
-// YouTube UI
-const ytThumb = document.getElementById("ytThumb");
-const ytTitle = document.getElementById("ytTitle");
+// YouTube UI (Bento-style 2x2 grid)
+const ytGrid = document.getElementById("ytGrid");
 const ytSubs = document.getElementById("ytSubs");
 const ytChannelName = document.getElementById("ytChannelName");
 const ytCard = document.getElementById("ytCard");
@@ -61,18 +61,24 @@ function updateOnline(){
   dot.style.boxShadow = on ? "0 0 18px rgba(0,160,120,.35)" : "0 0 18px rgba(220,80,80,.30)";
 }
 
-// ====== YOUTUBE: auto latest via RSS (no API key) ======
-function xmlTextBetween(xml, startTag, endTag){
-  const s = xml.indexOf(startTag);
-  if(s === -1) return null;
-  const e = xml.indexOf(endTag, s + startTag.length);
-  if(e === -1) return null;
-  return xml.slice(s + startTag.length, e).trim();
+// ====== YOUTUBE: auto latest 4 via RSS (no API key) ======
+function xmlAllBetween(xml, startTag, endTag){
+  const out = [];
+  let i = 0;
+  while(true){
+    const s = xml.indexOf(startTag, i);
+    if(s === -1) break;
+    const e = xml.indexOf(endTag, s + startTag.length);
+    if(e === -1) break;
+    out.push(xml.slice(s + startTag.length, e).trim());
+    i = e + endTag.length;
+  }
+  return out;
 }
 
 // Escaped XML entities minimal decode
 function decodeXml(s){
-  return s
+  return String(s || "")
     .replaceAll("&amp;", "&")
     .replaceAll("&lt;", "<")
     .replaceAll("&gt;", ">")
@@ -80,38 +86,57 @@ function decodeXml(s){
     .replaceAll("&#39;", "'");
 }
 
-async function loadLatestFromRss(){
-  // YouTube channel feed format
+async function loadLatest4FromRss(){
+  if(!ytGrid) return;
+
   const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${YT_CHANNEL_ID}`;
-  // CORS proxy
   const proxied = `https://api.allorigins.win/raw?url=${encodeURIComponent(feedUrl)}`;
 
   const res = await fetch(proxied, { cache: "no-store" });
   if(!res.ok) throw new Error("RSS fetch failed");
   const xml = await res.text();
 
-  // First <entry> is newest; grab its videoId + title
-  const entryStart = xml.indexOf("<entry>");
-  const entryEnd = xml.indexOf("</entry>", entryStart);
-  const entry = (entryStart !== -1 && entryEnd !== -1) ? xml.slice(entryStart, entryEnd) : xml;
+  // Channel name (if present)
+  const name = xmlAllBetween(xml, "<name>", "</name>")[0];
+  if(name && ytChannelName) ytChannelName.textContent = decodeXml(name);
 
-  const videoId = xmlTextBetween(entry, "<yt:videoId>", "</yt:videoId>");
-  const titleRaw = xmlTextBetween(entry, "<title>", "</title>");
-  const title = titleRaw ? decodeXml(titleRaw) : null;
+  // Latest 4 video IDs + titles (feed is newest-first)
+  const ids = xmlAllBetween(xml, "<yt:videoId>", "</yt:videoId>").slice(0, 4);
+  const titlesRaw = xmlAllBetween(xml, "<title>", "</title>").slice(0, 4).map(decodeXml);
 
-  if(!videoId) throw new Error("No videoId found");
+  if(!ids.length) throw new Error("No videos found");
 
-  const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-  const thumbUrl = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+  // Make big card go to channel (grid tiles go to videos)
+  if(ytCard) ytCard.href = YT_CHANNEL_FALLBACK_URL;
 
-  if(ytThumb) ytThumb.src = thumbUrl;
-  if(ytTitle) ytTitle.textContent = title || "Latest video";
-  if(ytCard) ytCard.href = videoUrl;
+  ytGrid.innerHTML = "";
+
+  ids.forEach((id, idx) => {
+    const videoUrl = `https://www.youtube.com/watch?v=${id}`;
+    const thumbUrl = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+    const title = titlesRaw[idx] || "YouTube video";
+
+    const a = document.createElement("a");
+    a.className = "ytItem";
+    a.href = videoUrl;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.title = title;
+    a.setAttribute("aria-label", title);
+
+    const img = document.createElement("img");
+    img.loading = "lazy";
+    img.decoding = "async";
+    img.alt = title;
+    img.src = thumbUrl;
+
+    a.appendChild(img);
+    ytGrid.appendChild(a);
+  });
 }
 
 // ====== SUBSCRIBERS (no API key) via Shields JSON ======
 function compactNumberString(s){
-  // Shields often returns like "2.53K" already
   const txt = String(s || "—").trim();
   if(/[KM]$/i.test(txt)) return txt;
   const n = Number(txt.replace(/[^\d.]/g, ""));
@@ -147,8 +172,5 @@ window.addEventListener("offline", updateOnline);
 window.addEventListener("scroll", () => tickBpm());
 
 // YouTube loads
-loadLatestFromRss().catch(() => {
-  // If proxy ever dies, at least don't break the page
-  if(ytTitle && ytTitle.textContent === "—") ytTitle.textContent = "Latest video";
-});
+loadLatest4FromRss().catch(() => {});
 loadSubs().catch(() => {});
