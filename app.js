@@ -61,7 +61,7 @@ function updateOnline(){
   dot.style.boxShadow = on ? "0 0 18px rgba(0,160,120,.35)" : "0 0 18px rgba(220,80,80,.30)";
 }
 
-// ====== YOUTUBE: auto latest 4 via RSS (no API key) ======
+// ====== YOUTUBE: auto latest 4 via RSS (no API key), filter out Shorts fast ======
 function xmlAllBetween(xml, startTag, endTag){
   const out = [];
   let i = 0;
@@ -86,47 +86,57 @@ function decodeXml(s){
     .replaceAll("&#39;", "'");
 }
 
+async function fetchRaw(url){
+  // Try direct fetch first (some environments allow it),
+  // fallback to AllOrigins proxy.
+  try{
+    const r = await fetch(url, { cache: "no-store" });
+    if(r.ok) return await r.text();
+  }catch{}
+  const proxied = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+  const r2 = await fetch(proxied, { cache: "no-store" });
+  if(!r2.ok) throw new Error("fetch failed");
+  return await r2.text();
+}
+
 async function loadLatest4FromRss(){
   if(!ytGrid) return;
 
   const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${YT_CHANNEL_ID}`;
-  const proxied = `https://api.allorigins.win/raw?url=${encodeURIComponent(feedUrl)}`;
-
-  const res = await fetch(proxied, { cache: "no-store" });
-  if(!res.ok) throw new Error("RSS fetch failed");
-  const xml = await res.text();
+  const xml = await fetchRaw(feedUrl);
 
   // Channel name (if present)
   const name = xmlAllBetween(xml, "<name>", "</name>")[0];
   if(name && ytChannelName) ytChannelName.textContent = decodeXml(name);
 
-  // Pull more than 4 so we can filter out shorts
-  const idsAll = xmlAllBetween(xml, "<yt:videoId>", "</yt:videoId>").slice(0, 18);
-  const titlesAll = xmlAllBetween(xml, "<title>", "</title>").slice(0, 18).map(decodeXml);
+  // Split into entry blocks
+  const entries = xml.split("<entry>").slice(1).map(s => "<entry>" + s);
 
-  if(!idsAll.length) throw new Error("No videos found");
-
-  // Filter to longform by checking lengthSeconds from watch page
+  // Filter out Shorts by requiring the alternate link to be watch?v= (most reliable cheap signal)
   const picked = [];
-  for(let i = 0; i < idsAll.length; i++){
-    const id = idsAll[i];
-    const title = titlesAll[i] || "YouTube video";
+  for(const entry of entries){
+    const altLink = (entry.match(/<link[^>]+rel="alternate"[^>]+href="([^"]+)"/) || [])[1] || "";
+    if(!altLink.includes("/watch?v=")) continue; // skips /shorts/
 
-    const seconds = await getYouTubeLengthSeconds(id);
-    // If we can't read duration, keep it (so it doesn't fail silently)
-    if(seconds == null || seconds >= 180){
-      picked.push({ id, title });
-    }
+    const id = (entry.match(/<yt:videoId>([^<]+)<\/yt:videoId>/) || [])[1];
+    const titleRaw = (entry.match(/<title>([^<]+)<\/title>/) || [])[1];
+
+    if(!id) continue;
+    picked.push({ id, title: decodeXml(titleRaw || "YouTube video") });
     if(picked.length >= 4) break;
   }
 
-  // Fallback: if somehow everything got filtered, just take first 4
-  const final = picked.length ? picked : idsAll.slice(0, 4).map((id, i) => ({ id, title: titlesAll[i] || "YouTube video" }));
+  // Fallback: if parsing fails for some reason, just show first 4 IDs
+  if(!picked.length){
+    const idsAll = xmlAllBetween(xml, "<yt:videoId>", "</yt:videoId>").slice(0, 4);
+    const titlesAll = xmlAllBetween(xml, "<title>", "</title>").slice(0, 4).map(decodeXml);
+    idsAll.forEach((id, i) => picked.push({ id, title: titlesAll[i] || "YouTube video" }));
+  }
 
   if(ytCard) ytCard.href = YT_CHANNEL_FALLBACK_URL;
 
   ytGrid.innerHTML = "";
-  final.forEach(({ id, title }) => {
+  picked.forEach(({ id, title }) => {
     const videoUrl = `https://www.youtube.com/watch?v=${id}`;
     const thumbUrl = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 
@@ -149,24 +159,6 @@ async function loadLatest4FromRss(){
   });
 }
 
-// Fetch watch page HTML via proxy and parse lengthSeconds
-async function getYouTubeLengthSeconds(videoId){
-  try{
-    const watch = `https://www.youtube.com/watch?v=${videoId}`;
-    const proxied = `https://api.allorigins.win/raw?url=${encodeURIComponent(watch)}`;
-    const res = await fetch(proxied, { cache: "no-store" });
-    if(!res.ok) return null;
-    const html = await res.text();
-
-    // Look for: "lengthSeconds":"123"
-    const m = html.match(/"lengthSeconds":"(\d+)"/);
-    if(!m) return null;
-    return Number(m[1]);
-  }catch{
-    return null;
-  }
-}
-
 // ====== SUBSCRIBERS (no API key) via Shields JSON ======
 function compactNumberString(s){
   const txt = String(s || "—").trim();
@@ -180,12 +172,14 @@ function compactNumberString(s){
 
 async function loadSubs(){
   if(!ytSubs) return;
-  const url = `https://img.shields.io/youtube/channel/subscribers/${YT_CHANNEL_ID}.json`;
-  const res = await fetch(url);
-  if(!res.ok) return;
-  const data = await res.json();
-  const v = data?.value || data?.message || "—";
-  ytSubs.textContent = compactNumberString(v);
+  try{
+    const url = `https://img.shields.io/youtube/channel/subscribers/${YT_CHANNEL_ID}.json`;
+    const res = await fetch(url, { cache: "no-store" });
+    if(!res.ok) return;
+    const data = await res.json();
+    const v = data?.value || data?.message || "—";
+    ytSubs.textContent = compactNumberString(v);
+  }catch{}
 }
 
 // ====== INIT ======
