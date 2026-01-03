@@ -1,6 +1,10 @@
 // ====== CONFIG ======
 const YT_CHANNEL_ID = "UCuDJUj1szS87hLRjXQKnmaA";
 const YT_CHANNEL_FALLBACK_URL = "https://www.youtube.com/@houseoftakuya";
+const TUMBLR_RSS_URLS = [
+  "https://www.tumblr.com/blog/takuyakitano/rss",
+  "https://takuyakitano.tumblr.com/rss"
+];
 
 // ====== HUD ======
 const bpmEl = document.getElementById("bpm");
@@ -14,6 +18,7 @@ const ytGrid = document.getElementById("ytGrid");
 const ytSubs = document.getElementById("ytSubs");
 const ytChannelName = document.getElementById("ytChannelName");
 const ytCard = document.getElementById("ytCard");
+const tumblrFeed = document.getElementById("tumblrFeed");
 
 function pad(n){ return String(n).padStart(2, "0"); }
 
@@ -84,6 +89,13 @@ function decodeXml(s){
     .replaceAll("&gt;", ">")
     .replaceAll("&quot;", "\"")
     .replaceAll("&#39;", "'");
+}
+
+function stripHtml(s){
+  return String(s || "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 async function fetchRaw(url){
@@ -159,6 +171,73 @@ async function loadLatest4FromRss(){
   });
 }
 
+async function loadTumblrFeed(){
+  if(!tumblrFeed) return;
+  try{
+    let xml = "";
+    let lastError = null;
+    for(const url of TUMBLR_RSS_URLS){
+      try{
+        xml = await fetchRaw(url);
+        if(xml) break;
+      }catch(err){
+        lastError = err;
+      }
+    }
+    if(!xml){
+      throw lastError || new Error("feed unavailable");
+    }
+    const items = xml.split("<item>").slice(1).map(s => "<item>" + s);
+    const picked = items.slice(0, 6).map((item) => {
+      const title = decodeXml((item.match(/<title>([^<]+)<\/title>/) || [])[1] || "Untitled");
+      const link = decodeXml((item.match(/<link>([^<]+)<\/link>/) || [])[1] || TUMBLR_RSS_URLS[0]);
+      const pubDate = decodeXml((item.match(/<pubDate>([^<]+)<\/pubDate>/) || [])[1] || "");
+      const descriptionRaw = decodeXml((item.match(/<description>([\s\S]*?)<\/description>/) || [])[1] || "");
+      const description = stripHtml(descriptionRaw).slice(0, 140);
+      return { title, link, pubDate, description };
+    });
+
+    tumblrFeed.innerHTML = "";
+
+    picked.forEach(({ title, link, pubDate, description }) => {
+      const item = document.createElement("a");
+      item.className = "tumblrItem";
+      item.href = link;
+      item.target = "_blank";
+      item.rel = "noreferrer";
+
+      const meta = document.createElement("div");
+      meta.className = "tumblrMeta";
+      if(pubDate){
+        const d = new Date(pubDate);
+        meta.textContent = Number.isNaN(d.getTime())
+          ? "Tumblr"
+          : d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+      }else{
+        meta.textContent = "Tumblr";
+      }
+
+      const titleEl = document.createElement("div");
+      titleEl.className = "tumblrTitle";
+      titleEl.textContent = title;
+
+      const excerpt = document.createElement("div");
+      excerpt.className = "tumblrExcerpt";
+      excerpt.textContent = description;
+
+      item.append(meta, titleEl);
+      if(description) item.append(excerpt);
+      tumblrFeed.append(item);
+    });
+
+    if(!picked.length){
+      tumblrFeed.textContent = "No posts yet.";
+    }
+  }catch{
+    tumblrFeed.textContent = "Unable to load Tumblr feed.";
+  }
+}
+
 // ====== SUBSCRIBERS (no API key) via Shields JSON ======
 function compactNumberString(s){
   const txt = String(s || "—").trim();
@@ -200,3 +279,4 @@ window.addEventListener("scroll", () => tickBpm());
 // YouTube loads
 loadLatest4FromRss().catch(() => {});
 loadSubs().catch(() => {});
+loadTumblrFeed().catch(() => {});
