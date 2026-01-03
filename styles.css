@@ -503,17 +503,6 @@ a:focus{ outline:2px solid rgba(10,10,12,.18); outline-offset:3px; border-radius
   background: linear-gradient(90deg, rgba(255,40,120,.22), rgba(255,255,255,.55));
 }
 
-.corner{
-  position:absolute;
-  right: 10px;
-  bottom: 10px;
-  width: 30px; height:30px;
-  border-radius: 999px;
-  border: 1px solid rgba(10,10,12,.12);
-  background: rgba(255,255,255,.45);
-  opacity: .7;
-}
-
 .tile.small{
   min-height: 140px;
   display:flex;
