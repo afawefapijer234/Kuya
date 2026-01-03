@@ -179,6 +179,59 @@ a:focus{ outline:2px solid rgba(10,10,12,.18); outline-offset:3px; border-radius
   border: 1px solid rgba(10,10,12,.10);
 }
 
+.ytGrid{
+  margin-top: 16px;
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.ytItem{
+  display:block;
+  border-radius: 18px;
+  overflow:hidden;
+  border: 1px solid rgba(10,10,12,.10);
+  background: rgba(0,0,0,.04);
+  box-shadow: 0 1px 0 rgba(255,255,255,.55) inset;
+  transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.ytItem:hover{
+  transform: translateY(-2px);
+  border-color: rgba(10,10,12,.14);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.60) inset,
+    0 10px 24px rgba(10,10,12,.10);
+}
+
+.ytItem img{
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  display:block;
+}
+
+/* optional: tiny label overlay */
+.ytPill{
+  position:absolute;
+  left: 10px;
+  top: 10px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  letter-spacing: .04em;
+  background: rgba(255,255,255,.70);
+  border: 1px solid rgba(10,10,12,.10);
+}
+
+/* if you want pills later, keep this */
+.ytItemWrap{ position:relative; }
+
+/* mobile: keep it 2x2 but slightly tighter */
+@media (max-width: 980px){
+  .ytGrid{ gap: 10px; }
+  .ytItem{ border-radius: 16px; }
+}
 
 .ytThumb{
   width: 100%;
