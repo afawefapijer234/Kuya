@@ -100,21 +100,35 @@ async function loadLatest4FromRss(){
   const name = xmlAllBetween(xml, "<name>", "</name>")[0];
   if(name && ytChannelName) ytChannelName.textContent = decodeXml(name);
 
-  // Latest 4 video IDs + titles (feed is newest-first)
-  const ids = xmlAllBetween(xml, "<yt:videoId>", "</yt:videoId>").slice(0, 4);
-  const titlesRaw = xmlAllBetween(xml, "<title>", "</title>").slice(0, 4).map(decodeXml);
+  // Pull more than 4 so we can filter out shorts
+  const idsAll = xmlAllBetween(xml, "<yt:videoId>", "</yt:videoId>").slice(0, 18);
+  const titlesAll = xmlAllBetween(xml, "<title>", "</title>").slice(0, 18).map(decodeXml);
 
-  if(!ids.length) throw new Error("No videos found");
+  if(!idsAll.length) throw new Error("No videos found");
 
-  // Make big card go to channel (grid tiles go to videos)
+  // Filter to longform by checking lengthSeconds from watch page
+  const picked = [];
+  for(let i = 0; i < idsAll.length; i++){
+    const id = idsAll[i];
+    const title = titlesAll[i] || "YouTube video";
+
+    const seconds = await getYouTubeLengthSeconds(id);
+    // If we can't read duration, keep it (so it doesn't fail silently)
+    if(seconds == null || seconds >= 180){
+      picked.push({ id, title });
+    }
+    if(picked.length >= 4) break;
+  }
+
+  // Fallback: if somehow everything got filtered, just take first 4
+  const final = picked.length ? picked : idsAll.slice(0, 4).map((id, i) => ({ id, title: titlesAll[i] || "YouTube video" }));
+
   if(ytCard) ytCard.href = YT_CHANNEL_FALLBACK_URL;
 
   ytGrid.innerHTML = "";
-
-  ids.forEach((id, idx) => {
+  final.forEach(({ id, title }) => {
     const videoUrl = `https://www.youtube.com/watch?v=${id}`;
     const thumbUrl = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
-    const title = titlesRaw[idx] || "YouTube video";
 
     const a = document.createElement("a");
     a.className = "ytItem";
@@ -133,6 +147,24 @@ async function loadLatest4FromRss(){
     a.appendChild(img);
     ytGrid.appendChild(a);
   });
+}
+
+// Fetch watch page HTML via proxy and parse lengthSeconds
+async function getYouTubeLengthSeconds(videoId){
+  try{
+    const watch = `https://www.youtube.com/watch?v=${videoId}`;
+    const proxied = `https://api.allorigins.win/raw?url=${encodeURIComponent(watch)}`;
+    const res = await fetch(proxied, { cache: "no-store" });
+    if(!res.ok) return null;
+    const html = await res.text();
+
+    // Look for: "lengthSeconds":"123"
+    const m = html.match(/"lengthSeconds":"(\d+)"/);
+    if(!m) return null;
+    return Number(m[1]);
+  }catch{
+    return null;
+  }
 }
 
 // ====== SUBSCRIBERS (no API key) via Shields JSON ======
