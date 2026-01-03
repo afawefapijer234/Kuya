@@ -60,8 +60,12 @@
         </div>
 
         <div class="grid">
-          <!-- BIG: YouTube -->
-          <a class="tile big glass ytCard" id="ytCard" href="https://www.youtube.com/@TAKUYA" target="_blank" rel="noreferrer">
+          <a class="tile big glass ytCard"
+             id="ytCard"
+             href="https://www.youtube.com/@TAKUYA"
+             target="_blank"
+             rel="noopener noreferrer">
+          
             <div class="tileTop">
               <div class="badge yt">▶</div>
               <div>
@@ -73,12 +77,8 @@
               <div class="cta">Subscribe</div>
             </div>
           
-            <div class="ytHero">
-              <img id="ytThumb" class="ytThumb" alt="Latest video thumbnail" />
-              <div class="ytMeta">
-                <div class="ytLatestLabel">Latest video</div>
-                <div id="ytTitle" class="ytTitle">—</div>
-              </div>
+            <div class="ytGrid" id="ytGrid" aria-label="Latest YouTube videos">
+              <!-- filled by JS -->
             </div>
           
             <div class="corner" aria-hidden="true"></div>
