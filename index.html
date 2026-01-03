@@ -4,168 +4,37 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>KUYA</title>
-  <meta name="description" content="KUYA — links + work." />
+  <meta name="description" content="KUYA — feed." />
   <meta name="theme-color" content="#fbfaf7" />
-
   <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
-  <div class="bg" aria-hidden="true"></div>
-  <div class="grain" aria-hidden="true"></div>
-
-  <main class="shell">
-    <section class="layout">
-      <!-- LEFT -->
-<aside class="left glass">
-  <div class="avatarWrap">
-    <img class="avatar" src="assets/avatar.png" alt="KUYA avatar"
-      onerror="this.style.display='none'; this.closest('.avatarWrap').classList.add('fallback');" />
-    <div class="avatarFallback" aria-hidden="true"><span>KUYA</span></div>
-    <div class="ring" aria-hidden="true"></div>
-  </div>
-
-  <div class="mobileHeader">
-    <div class="mobileIdentity">
-      <h1 class="name">KUYA</h1>
-      <div class="pills">
-        <a class="pill" href="https://www.youtube.com/@TAKUYA" target="_blank" rel="noreferrer">YouTube</a>
-        <a class="pill" href="https://instagram.com/" target="_blank" rel="noreferrer">Instagram</a>
-        <a class="pill" href="https://discord.com" target="_blank" rel="noreferrer">Discord</a>
-        <a class="pill" href="https://tiktok.com/@kuya5k" target="_blank" rel="noreferrer">TikTok</a>
-      </div>
+  <header class="topbar">
+    <div class="topbarLeft">
+      <div class="name">kuya</div>
+      <nav class="links" aria-label="Links">
+        <a href="https://www.youtube.com/@TAKUYA" target="_blank" rel="noreferrer">youtube</a>
+        <a href="https://instagram.com/" target="_blank" rel="noreferrer">instagram</a>
+        <a href="https://discord.com" target="_blank" rel="noreferrer">discord</a>
+        <a href="https://tiktok.com/@kuya5k" target="_blank" rel="noreferrer">tiktok</a>
+      </nav>
     </div>
 
-    <div class="mobileMeta">
-      <a class="contact" href="mailto:t@kuya.design">
-        <span class="icon">✉</span>
-        <span>t@kuya.design</span>
-      </a>
-
-      <div class="bpmMini glass2" aria-label="Current BPM">
-        <span class="bpmLabel">BPM</span>
-        <span class="bpmValue" id="bpm">—</span>
-      </div>
+    <div class="topbarRight">
+      <a class="email" href="mailto:t@kuya.design">t@kuya.design</a>
+      <div class="bpmLine"><span id="bpm">—</span> bpm</div>
     </div>
-  </div>
+  </header>
 
-  <p class="bio">I’m a graphic + fashion designer and content creator focused on design storytelling.</p>
+  <main class="wrap">
+    <section class="feed">
+      <div class="feedHeader">
+        <div class="feedTitle">feed</div>
+        <a class="feedSource" href="https://takuyakitano.tumblr.com/" target="_blank" rel="noreferrer">tumblr</a>
+      </div>
 
-  <div class="fine">
-    <span class="dot" aria-hidden="true"></span>
-    <span id="status">online</span>
-  </div>
-</aside>
-
-      <!-- RIGHT -->
-      <section class="right">
-        <div class="rightHeader">
-          <div class="sectionTitle">Latest video</div>
-          <div class="sectionHint">a small portal to whatever you’re building</div>
-        </div>
-
-        <div class="grid">
-          <a class="tile big glass ytCard"
-             id="ytCard"
-             href="https://www.youtube.com/@TAKUYA"
-             target="_blank"
-             rel="noopener noreferrer">
-          
-            <div class="tileTop">
-              <div class="badge yt">▶</div>
-              <div>
-                <div class="title" id="ytChannelName">TAKUYA</div>
-                <div class="sub">
-                  <span id="ytSubs">—</span> subscribers
-                </div>
-              </div>
-              <div class="cta">Subscribe</div>
-            </div>
-          
-            <div class="ytGrid" id="ytGrid" aria-label="Latest YouTube videos">
-              <!-- filled by JS -->
-            </div>
-          </a>
-
-          <!-- Discord -->
-          <a class="tile glass" href="https://discord.com" target="_blank" rel="noreferrer">
-            <div class="tileTop">
-              <div class="badge dc">⌁</div>
-              <div>
-                <div class="title">Discord Community</div>
-                <div class="sub">discord.com</div>
-              </div>
-            </div>
-            <div class="mediaBlock"></div>
-          </a>
-
-          <!-- Poly -->
-          <a class="tile glass poly" href="https://polyconveniencestore.com" target="_blank" rel="noreferrer">
-            <div class="tileTop">
-              <div class="badge poly">P</div>
-              <div>
-                <div class="title">(p)OLY Convenience Store</div>
-                <div class="sub">Shop / drops / archive</div>
-              </div>
-            </div>
-            <div class="polyBar"></div>
-          </a>
-
-          <!-- Small tiles -->
-          <a class="tile small glass" href="https://tiktok.com/@kuya5k" target="_blank" rel="noreferrer">
-            <div class="tileTop">
-              <div class="badge tk">♪</div>
-              <div>
-                <div class="title">TikTok</div>
-                <div class="sub">@kuya5k</div>
-              </div>
-            </div>
-            <div class="cta miniCta">Follow</div>
-          </a>
-
-          <a class="tile small glass" href="https://instagram.com/" target="_blank" rel="noreferrer">
-            <div class="tileTop">
-              <div class="badge ig">◎</div>
-              <div>
-                <div class="title">Instagram</div>
-                <div class="sub">—</div>
-              </div>
-            </div>
-            <div class="cta miniCta">Follow</div>
-          </a>
-
-          <a class="tile small glass" href="https://www.are.na/" target="_blank" rel="noreferrer">
-            <div class="tileTop">
-              <div class="badge ar">✶</div>
-              <div>
-                <div class="title">ARE.NA page</div>
-                <div class="sub">are.na</div>
-              </div>
-            </div>
-          </a>
-
-          <a class="tile small glass" href="https://kuya.notion.site" target="_blank" rel="noreferrer">
-            <div class="tileTop">
-              <div class="badge no">N</div>
-              <div>
-                <div class="title">Bookshelf</div>
-                <div class="sub">kuya.notion.site</div>
-              </div>
-            </div>
-          </a>
-        </div>
-
-                <section class="tumblrSection">
-          <div class="sectionTitle">Tumblr feed</div>
-          <div class="sectionHint">latest posts from takuyakitano</div>
-          <div class="tumblrFeed" id="tumblrFeed" aria-live="polite"></div>
-        </section>
-
-
-        <footer class="footer">
-          <span>© <span id="year"></span> KUYA</span>
-        </footer>
-      </section>
+      <div id="tumblrFeed" class="tumblrFeed" aria-live="polite"></div>
     </section>
   </main>
 
