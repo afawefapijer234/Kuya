@@ -36,6 +36,10 @@ a:hover{
   gap: 18px;
 }
 
+.topbarLeft{
+  gap: 6px;
+}
+
 .topbarLeft .name{
   font-size: 13px;
   font-weight: 400;
