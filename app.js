@@ -34,11 +34,11 @@ const yearEl = document.getElementById("year");
 const statusElTop = document.getElementById("statusMsg");
 
 const STATUS_ITEMS = [
-  { mode: "says", text: "san q berry muchee..." },
-  { mode: "is", text: "currently using the bathroom" },
-  { mode: "is", text: "currently working out" },
-  { mode: "is", text: "shopping for new clothes" },
-  { mode: "is", text: "recording a new video" },
+  "says: san q berry muchee...",
+  "is currently using the bathroom",
+  "is currently working out",
+  "is shopping for new clothes",
+  "is recording a new video",
 ];
 
 /* =========================================================
@@ -196,7 +196,7 @@ async function runTypewriter(el, items){
 
   while(true){
     const item = items[i % items.length];
-    const full = item.mode === "says"
+     item.mode === "says"
       ? `says: ${item.text}`
       : `is ${item.text}`;
 
