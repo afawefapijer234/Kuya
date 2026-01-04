@@ -33,50 +33,90 @@ const yearEl = document.getElementById("year");
 // ====== STATUS TYPEWRITER ======
 const statusElTop = document.getElementById("statusMsg");
 
-const STATUS_LINES = [
-  "san q berry muchee...",
-  "is currently using the bathroom",
-  "is currently working out",
-  "is shopping for new clothes",
-  "is recording a new video",
+const STATUS_ITEMS = [
+  { mode: "says", text: "san q berry muchee..." },
+  { mode: "is", text: "currently using the bathroom" },
+  { mode: "is", text: "currently working out" },
+  { mode: "is", text: "shopping for new clothes" },
+  { mode: "is", text: "recording a new video" },
 ];
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-async function runTypewriter(el, lines) {
-  if (!el || !lines?.length) return;
+const rand = (a, b) => Math.floor(a + Math.random() * (b - a + 1));
+
+function isPunct(ch) {
+  return ch === "." || ch === "!" || ch === "?" || ch === "," ||
+    ch === ";" || ch === ":" || ch === "…" || ch === "-";
+}
+function isSpace(ch) {
+  return ch === " " || ch === "\n" || ch === "\t";
+}
+
+async function runTypewriter(el, items) {
+  if (!el || !items?.length) return;
 
   const reduce = window.matchMedia &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (reduce) {
-    el.textContent = lines[0];
+    const first = items[0];
+    el.textContent = first.mode === "says" ? `says: ${first.text}` : `is ${first.text}`;
     return;
   }
 
-  // natural timing
-  const typeMin = 18;
-  const typeMax = 38;
-  const eraseMin = 12;
-  const eraseMax = 26;
-  const holdMin = 900;
-  const holdMax = 1400;
-  const gapMin = 250;
-  const gapMax = 450;
+  // base speeds
+  const typeMin = 55;
+  const typeMax = 95;
+  const eraseMin = 28;
+  const eraseMax = 55;
+  const holdMin = 2200;
+  const holdMax = 3800;
+  const gapMin = 450;
+  const gapMax = 800;
 
-  const rand = (a, b) => Math.floor(a + Math.random() * (b - a + 1));
+  // "thinking" pauses
+  const microPauseChance = 0.07;
+  const microPauseMsMin = 90;
+  const microPauseMsMax = 220;
 
+  const commaPauseMin = 140;
+  const commaPauseMax = 260;
+
+  const punctPauseMin = 220;
+  const punctPauseMax = 520;
+
+  const spacePauseChance = 0.06;
+  const spacePauseMin = 60;
+  const spacePauseMax = 140;
   let i = 0;
 
   while (true) {
-    const full = String(lines[i % lines.length]);
+    const item = items[i % items.length];
+    const full = item.mode === "says"
+      ? `says: ${item.text}`
+      : `is ${item.text}`;
+     
     el.textContent = "";
 
     // type
-    for (let c = 0; c < full.length; c++) {
-      el.textContent += full[c];
-      await sleep(rand(typeMin, typeMax));
+      const ch = full[c];
+      el.textContent += ch;
+
+      let delay = rand(typeMin, typeMax);
+
+      if (ch === ",") {
+        delay += rand(commaPauseMin, commaPauseMax);
+      } else if (isPunct(ch)) {
+        delay += rand(punctPauseMin, punctPauseMax);
+      } else if (isSpace(ch) && Math.random() < spacePauseChance) {
+        delay += rand(spacePauseMin, spacePauseMax);
+      } else if (Math.random() < microPauseChance) {
+        delay += rand(microPauseMsMin, microPauseMsMax);
+      }
+
+      await sleep(delay);
     }
 
     // hold
@@ -84,8 +124,13 @@ async function runTypewriter(el, lines) {
 
     // erase
     for (let c = full.length; c >= 0; c--) {
+      const ch = full[c - 1] || "";
       el.textContent = full.slice(0, c);
-      await sleep(rand(eraseMin, eraseMax));
+
+      let delay = rand(eraseMin, eraseMax);
+      if (isPunct(ch)) delay += rand(40, 120);
+
+      await sleep(delay);
     }
 
     await sleep(rand(gapMin, gapMax));
@@ -916,4 +961,4 @@ loadLatest4FromRss().catch(() => {});
 loadSubs().catch(() => {});
 loadTumblrFeed().catch(() => {});
 
-runTypewriter(statusElTop, STATUS_LINES);
+runTypewriter(statusElTop, STATUS_ITEMS);
