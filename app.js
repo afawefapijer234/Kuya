@@ -97,25 +97,132 @@ function updateOnline() {
   dot.style.boxShadow = on ? "0 0 18px rgba(0,160,120,.35)" : "0 0 18px rgba(220,80,80,.30)";
 }
 
-let baseBpm = 72;
-let drift = 0;
+// ===== HEART-RHYTHM BPM MODEL =====
+let bpmValue = 72;           // displayed bpm (stateful)
+let bpmVel = 0;              // velocity for smoother movement (optional)
+let drift = 0;               // slow wander
+let lastTick = performance.now();
 
-function tickBpm() {
+// schedule targets (you can tune these)
+const SCHEDULE = {
+  sleep:   { min: 35, max: 45 },   // 9pm–6am target band
+  day:     { min: 60, max: 80 },   // 6am–8pm target band
+  workout: { min:120, max:180 }    // 8pm–9pm target band
+};
+
+// helper
+function randBetween(a, b){ return a + Math.random() * (b - a); }
+
+// smoothstep for soft transitions
+function smoothstep(t){
+  t = Math.max(0, Math.min(1, t));
+  return t*t*(3 - 2*t);
+}
+
+// returns target bpm + model params based on local time
+function getDailyTargetParams(){
+  const now = new Date();
+  const h = now.getHours() + now.getMinutes()/60;
+
+  // phases:
+  // workout: 20–21
+  // sleep: 21–6
+  // day: 6–20
+  const inWorkout = (h >= 20 && h < 21);
+  const inSleep = (h >= 21 || h < 6);
+  const inDay = (!inWorkout && !inSleep);
+
+  // base target from band
+  let band = inWorkout ? SCHEDULE.workout : (inSleep ? SCHEDULE.sleep : SCHEDULE.day);
+  let target = randBetween(band.min, band.max);
+
+  // transition windows (soft ramps)
+  // 19.5–20: ramp up into workout
+  // 21–21.5: ramp down after workout into sleep
+  // 5.5–6: ramp up from sleep into day
+  // 20–21 already handled by workout band; we shape edges:
+
+  // ramp into workout
+  if (h >= 19.5 && h < 20) {
+    const t = smoothstep((h - 19.5) / 0.5); // 0..1 over 30 min
+    const dayTarget = randBetween(SCHEDULE.day.min, SCHEDULE.day.max);
+    const workoutTarget = randBetween(SCHEDULE.workout.min, SCHEDULE.workout.max);
+    target = dayTarget + t * (workoutTarget - dayTarget);
+  }
+
+  // ramp down after workout into sleep
+  if (h >= 21 && h < 21.5) {
+    const t = smoothstep((h - 21) / 0.5);
+    const workoutTarget = randBetween(SCHEDULE.workout.min, SCHEDULE.workout.max);
+    const sleepTarget = randBetween(SCHEDULE.sleep.min, SCHEDULE.sleep.max);
+    target = workoutTarget + t * (sleepTarget - workoutTarget);
+  }
+
+  // ramp up from sleep into day
+  if (h >= 5.5 && h < 6) {
+    const t = smoothstep((h - 5.5) / 0.5);
+    const sleepTarget = randBetween(SCHEDULE.sleep.min, SCHEDULE.sleep.max);
+    const dayTarget = randBetween(SCHEDULE.day.min, SCHEDULE.day.max);
+    target = sleepTarget + t * (dayTarget - sleepTarget);
+  }
+
+  // smoothing + realism knobs by phase
+  // "tau" = how quickly it follows target (seconds). Larger = slower.
+  // "maxStep" = cap on bpm change per second (realistic ramp speed).
+  let tau = 18;        // default follow speed
+  let maxStep = 3.0;   // bpm/sec cap
+
+  if (inSleep) { tau = 40; maxStep = 1.2; }
+  if (inDay) { tau = 18; maxStep = 2.4; }
+  if (inWorkout) { tau = 8; maxStep = 6.0; }
+
+  return { target, tau, maxStep, inSleep, inDay, inWorkout };
+}
+
+function tickBpm(){
   if (!bpmEl) return;
 
-  drift += (Math.random() - 0.5) * 0.6;
-  drift = Math.max(-10, Math.min(14, drift));
+  const nowT = performance.now();
+  const dt = Math.min(0.2, Math.max(0.02, (nowT - lastTick) / 1000)); // seconds
+  lastTick = nowT;
 
-  const noise = (Math.random() - 0.5) * 2.4;
-  const scroll = Math.min(8, window.scrollY / 120);
+  // slow wander (keeps it from feeling robotic)
+  drift += (Math.random() - 0.5) * 0.12;
+  drift = Math.max(-6, Math.min(6, drift));
 
-  let bpm = Math.round(baseBpm + drift + noise + scroll);
-  bpm = Math.max(58, Math.min(132, bpm));
+  const { target, tau, maxStep, inSleep, inDay, inWorkout } = getDailyTargetParams();
 
-  bpmEl.textContent = bpm;
+  // scroll adds a tiny real bump (optional)
+  const scrollBoost = Math.min(6, window.scrollY / 180);
+
+  // micro-noise (heartbeat variability)
+  const micro = (Math.random() - 0.5) * (inWorkout ? 4.0 : inDay ? 2.0 : 1.0);
+
+  // desired target with drift + scroll
+  const desired = target + drift + scrollBoost + micro;
+
+  // smooth following (first-order low-pass)
+  const alpha = 1 - Math.exp(-dt / tau);         // follow rate based on tau
+  let next = bpmValue + alpha * (desired - bpmValue);
+
+  // cap rate of change to avoid jumps (real heart can't teleport)
+  const maxDelta = maxStep * dt;
+  const delta = next - bpmValue;
+  if (delta > maxDelta) next = bpmValue + maxDelta;
+  if (delta < -maxDelta) next = bpmValue - maxDelta;
+
+  // optional extra smoothing using a little velocity (makes ramps feel organic)
+  bpmVel = 0.85 * bpmVel + 0.15 * (next - bpmValue);
+  bpmValue += bpmVel;
+
+  // clamp to absolute believable ranges
+  bpmValue = Math.max(32, Math.min(190, bpmValue));
+
+  const shown = Math.round(bpmValue);
+  bpmEl.textContent = shown;
 
   if (dot) {
-    const pulse = 0.95 + (bpm - 60) / 260;
+    const pulse = 0.95 + (shown - 60) / 260;
     dot.style.transform = `scale(${pulse})`;
   }
 }
