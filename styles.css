@@ -106,14 +106,14 @@ a:hover{ text-decoration: underline; text-underline-offset: 3px; }
 /* each post */
 .tumblrPost{
   padding: 16px 0;
-  border-top: 0;
+  border-top: 0; /* you wanted no border-top */
 }
 
 .tumblrPost:first-child{
   padding-top: 6px;
 }
 
-/* header row: title + hover date */
+/* header row: title + (share/date) on right */
 .tumblrHead{
   display:flex;
   align-items:baseline;
@@ -121,12 +121,42 @@ a:hover{ text-decoration: underline; text-underline-offset: 3px; }
   gap: 16px;
 }
 
-.tumblrTitle{
-  font-weight: 600;
-  letter-spacing: .01em;
+.tumblrHeadLeft{
+  min-width: 0;
 }
 
-/* date hidden until hover */
+.tumblrHeadRight{
+  display:inline-flex;
+  align-items:baseline;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+/* title */
+.tumblrPostTitle{
+  font-weight: 600;
+  letter-spacing: .01em;
+  overflow-wrap: anywhere;
+}
+
+/* share inline (small, underlined, classic link vibe) */
+.tumblrShareInline{
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  color: rgba(0,0,0,.55);
+  opacity: 0;
+  transition: opacity .18s ease, color .18s ease;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.tumblrPost:hover .tumblrShareInline{ opacity: 1; }
+.tumblrShareInline:hover{ color: rgba(0,0,0,.82); }
+
+/* date hidden until hover (keeps it top-right inline with title) */
 .tumblrPostDate{
   opacity: 0;
   transition: opacity .15s ease;
@@ -134,13 +164,10 @@ a:hover{ text-decoration: underline; text-underline-offset: 3px; }
   color: var(--muted);
   white-space: nowrap;
 }
-
-.tumblrPost:hover .tumblrPostDate{
-  opacity: 1;
-}
-
+.tumblrPost:hover .tumblrPostDate{ opacity: 1; }
 @media (hover: none){
   .tumblrPostDate{ opacity: 1; }
+  .tumblrShareInline{ opacity: 1; }
 }
 
 /* body: preserve formatting */
@@ -175,41 +202,109 @@ a:hover{ text-decoration: underline; text-underline-offset: 3px; }
   text-underline-offset: 3px;
 }
 
-/* images */
+/* images (aligned to text column; no auto-centering / weird wide container) */
 .tumblrBody img{
   display:block;
-  max-width:100%;
+  width: 100%;
+  max-width: 100%;
   height:auto;
   border-radius: 18px;
   margin: 12px 0;
-  cursor: zoom-in; /* for your click-to-zoom */
+  cursor: zoom-in; /* click-to-zoom */
 }
 
-.tumblrFoot{
-  margin-top: 10px;
+/* if tumblr gives multi-photo, grid it */
+.tumblrPhotoGrid{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+@media (max-width: 640px){
+  .tumblrPhotoGrid{ grid-template-columns: 1fr; }
+}
+
+/* sign-off centered at bottom: "- takuya" classic hyperlink style */
+.tumblrSignoff{
+  margin-top: 12px;
+  text-align: center;
+  font-size: 13px;
+  color: rgba(0,0,0,.55);
+}
+.tumblrSignoff a{
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* bottom pager (back/forward in time) */
+.tumblrPager{
   display:flex;
-  justify-content:flex-end;
-  align-items:center;
-  gap: 10px;
+  justify-content:space-between;
+  gap: 12px;
+  padding: 18px 0 4px;
+  margin-top: 14px;
+  border-top: 1px solid rgba(0,0,0,.08);
 }
-
-.tumblrOpen{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  padding: 4px 10px;
-  border-radius: 999px;
+.tumblrPager .spacer{ flex: 1; }
+.tumblrPager button{
   border: 1px solid rgba(0,0,0,.14);
-  opacity: .55;
-  line-height: 1;
-  font-weight: 600;
-  text-decoration: none;
+  background: transparent;
+  border-radius: 999px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font: inherit;
+  opacity: .75;
+}
+.tumblrPager button:hover{ opacity: 1; }
+.tumblrPager button[disabled]{
+  opacity: 0;
+  pointer-events: none;
 }
 
-.tumblrOpen:hover{
-  opacity: .9;
-  text-decoration: none;
+/* ====== LIGHTBOX (IMAGE ZOOM) ====== */
+#imgLightbox{
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  background: rgba(0,0,0,.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 24px;
 }
+#imgLightbox.open{ display: flex; }
+
+#imgLightbox .lbInner{
+  max-width: min(1200px, 96vw);
+  max-height: 92vh;
+  width: fit-content;
+  height: fit-content;
+  display: grid;
+  gap: 10px;
+  justify-items: end;
+}
+
+#imgLightbox img{
+  max-width: min(1200px, 96vw);
+  max-height: 88vh;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.35);
+  background: rgba(255,255,255,.04);
+}
+
+#imgLightbox .lbClose{
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 12px;
+  cursor: pointer;
+  background: rgba(255,255,255,.14);
+  color: rgba(255,255,255,.92);
+  font: inherit;
+}
+#imgLightbox .lbClose:hover{ background: rgba(255,255,255,.20); }
 
 /* ====== MOBILE ====== */
 @media (max-width: 520px){
