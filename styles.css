@@ -56,7 +56,6 @@ a:hover{ text-decoration: underline; text-underline-offset: 3px; }
 }
 .links a{
   text-decoration: none;
-  transition: color .15s ease;
   color: var(--muted); 
 }
 
