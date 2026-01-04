@@ -229,190 +229,44 @@ function buildPostInnerHtml(post){
   return { title: fallbackTitle, html: sanitizeHtml(fallbackBody) };
 }
 
-function injectTumblrUiStylesIfMissing(){
-  if(document.getElementById("tumblrUiStyles")) return;
-
-  const style = document.createElement("style");
-  style.id = "tumblrUiStyles";
-  style.textContent = `
-    .tumblrPost{ padding: 18px 0; }
-
-    .tumblrHead{
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 10px;
-    }
-
-    .tumblrHeadLeft{
-      min-width: 0;
-      display: flex;
-      align-items: baseline;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .tumblrPostTitle{
-      font-weight: 600;
-      letter-spacing: .01em;
-      min-width: 0;
-      overflow-wrap: anywhere;
-    }
-
-    .tumblrHeadRight{
-      display: inline-flex;
-      align-items: baseline;
-      gap: 10px;
-      flex: 0 0 auto;
-      min-width: 0;
-    }
-
-    /* date hidden until hover */
-    .tumblrPostDate{
-      opacity: 0;
-      font-size: 12px;
-      white-space: nowrap;
-      transition: opacity .18s ease;
-      color: rgba(0,0,0,.55);
-    }
-    .tumblrPost:hover .tumblrPostDate{ opacity: 1; }
-
-    /* share inline (small) */
-    .tumblrShareInline{
-      border: 0;
-      background: none;
-      padding: 0;
-      cursor: pointer;
-      font: inherit;
-      font-size: 12px;
-      color: rgba(0,0,0,.55);
-      opacity: 0.0;
-      transition: opacity .18s ease, color .18s ease;
-      text-decoration: underline;
-      text-underline-offset: 3px;
-    }
-    .tumblrPost:hover .tumblrShareInline{ opacity: 1; }
-    .tumblrShareInline:hover{ color: rgba(0,0,0,.82); }
-
-    .wrap,
-    .tumblrBody{
-      max-width: 700px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    .tumblrBody p{ margin: 0 0 10px; }
-    .tumblrBody a{ text-decoration: underline; text-underline-offset: 3px; }
-    .tumblrBody img{
-      display: block;
-      max-width: 860px;
-      width: 100%;
-      height: auto;
-      margin: 14px auto;
-      border-radius: 18px;
-    }
-    .tumblrBody blockquote{
-      margin: 10px 0;
-      padding: 0 0 0 14px;
-      border-left: 2px solid rgba(0,0,0,.18);
-      opacity: .95;
-    }
-    .tumblrCaption{ opacity: .92; }
-
-    .tumblrPhotoGrid{
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-    }
-    @media (max-width: 640px){
-      .tumblrPhotoGrid{ grid-template-columns: 1fr; }
-    }
-
-    /* bottom sign-off centered */
-    .tumblrSignoff{
-      margin-top: 12px;
-      text-align: center;
-      font-size: 13px;
-      color: rgba(0,0,0,.55);
-    }
-    .tumblrSignoff a{
-      color: #e45656; /* classic colored */
-      text-decoration: underline;
-      text-underline-offset: 3px;
-    }
-
-    /* bottom pager */
-    .tumblrPager{
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 18px 0 4px;
-      margin-top: 14px;
-      border-top: 1px solid rgba(0,0,0,.08);
-    }
-    .tumblrPager .spacer{ flex: 1; }
-    .tumblrPager button{
-      border: 1px solid rgba(0,0,0,.14);
-      background: transparent;
-      border-radius: 999px;
-      padding: 8px 12px;
-      cursor: pointer;
-      font: inherit;
-      opacity: .75;
-    }
-    .tumblrPager button:hover{ opacity: 1; }
-  `;
-  document.head.appendChild(style);
-}
-
 // ====== LIGHTBOX (IMAGE ZOOM) ======
 function ensureLightbox(){
   let lb = document.getElementById("imgLightbox");
   if(lb) return lb;
 
-  const style = document.createElement("style");
-  style.textContent = `
-    #imgLightbox{
-      position: fixed;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      background: rgba(0,0,0,.72);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-      padding: 24px;
-    }
-    #imgLightbox.open{ display: flex; }
-    #imgLightbox .lbInner{
-      max-width: min(1200px, 96vw);
-      max-height: 92vh;
-      width: fit-content;
-      height: fit-content;
-      display: grid;
-      gap: 10px;
-      justify-items: end;
-    }
-    #imgLightbox img{
-      max-width: min(1200px, 96vw);
-      max-height: 88vh;
-      border-radius: 14px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.35);
-      background: rgba(255,255,255,.04);
-    }
-    #imgLightbox button{
-      border: 0;
-      border-radius: 999px;
-      padding: 8px 12px;
-      cursor: pointer;
-      background: rgba(255,255,255,.14);
-      color: rgba(255,255,255,.92);
-      font: inherit;
-    }
-    #imgLightbox button:hover{ background: rgba(255,255,255,.20); }
-  `;
-  document.head.appendChild(style);
+  lb = document.createElement("div");
+  lb.id = "imgLightbox";
+  lb.setAttribute("role", "dialog");
+  lb.setAttribute("aria-modal", "true");
+
+  const inner = document.createElement("div");
+  inner.className = "lbInner";
+
+  const closeBtn = document.createElement("button");
+  closeBtn.type = "button";
+  closeBtn.className = "lbClose";
+  closeBtn.textContent = "Close";
+  closeBtn.addEventListener("click", () => closeLightbox());
+
+  const img = document.createElement("img");
+  img.alt = "";
+
+  inner.appendChild(closeBtn);
+  inner.appendChild(img);
+  lb.appendChild(inner);
+
+  // click backdrop closes (but clicking image shouldn’t)
+  lb.addEventListener("click", (e) => {
+    if(e.target === lb) closeLightbox();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if(e.key === "Escape") closeLightbox();
+  });
+
+  document.body.appendChild(lb);
+  return lb;
+}
 
   lb = document.createElement("div");
   lb.id = "imgLightbox";
@@ -753,8 +607,6 @@ function buildTumblrPostElement(p){
 
 async function loadTumblrFeed(){
   if(!tumblrFeed) return;
-
-  injectTumblrUiStylesIfMissing();
 
   if(tumblrLoading) return;
   tumblrLoading = true;
