@@ -37,6 +37,7 @@ a:hover{
 }
 
 .topbarLeft{
+  display: grid;
   gap: 6px;
 }
 
