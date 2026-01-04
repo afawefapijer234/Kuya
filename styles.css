@@ -106,11 +106,10 @@ a:hover{ text-decoration: underline; text-underline-offset: 3px; }
 /* each post */
 .tumblrPost{
   padding: 16px 0;
-  border-top: 1px solid rgba(0,0,0,.08);
+  border-top: 0;
 }
 
 .tumblrPost:first-child{
-  border-top: 0;
   padding-top: 6px;
 }
 
@@ -186,12 +185,12 @@ a:hover{ text-decoration: underline; text-underline-offset: 3px; }
   cursor: zoom-in; /* for your click-to-zoom */
 }
 
-/* footer row: minimal open button */
 .tumblrFoot{
   margin-top: 10px;
   display:flex;
+  justify-content:flex-end;
   align-items:center;
-  justify-content:flex-start;
+  gap: 10px;
 }
 
 .tumblrOpen{
