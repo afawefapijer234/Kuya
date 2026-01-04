@@ -31,10 +31,11 @@ a:hover{ text-decoration: underline; text-underline-offset: 3px; }
 }
 
 .topbarLeft .name{
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: .01em;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
   margin: 0 0 2px;
+  color: var(--muted);
 }
 
 .links{
@@ -172,16 +173,17 @@ a:hover{ text-decoration: underline; text-underline-offset: 3px; }
 
 /* body: preserve formatting */
 .tumblrBody{
+  color: var(--muted);
   margin-top: 10px;
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
 
 .tumblrBody b,
-.tumblrBody strong{ font-weight: 700; }
+.tumblrBody strong{ font-weight: 700; color: inherit; }
 
 .tumblrBody em,
-.tumblrBody i{ font-style: italic; }
+.tumblrBody i{ font-style: italic; color: inherit; }
 
 .tumblrBody p{ margin: 0 0 10px; }
 
