@@ -66,6 +66,26 @@ function getQueryParam(name) {
   return new URL(window.location.href).searchParams.get(name);
 }
 
+function slugify(s) {
+  return String(s || "")
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+function prettyHashForPost({ id, title }) {
+  const slug = slugify(title) || "post";
+  return `#/${slug}--${id}`;
+}
+
+function parsePrettyHash() {
+  const h = location.hash || "";
+  const m = h.match(/^#\/.+--(\d+)$/);
+  return m ? m[1] : null;
+}
+
 function getSiteBaseUrl() {
   const { origin, pathname } = window.location;
   const basePath = pathname.endsWith("/") ? pathname : pathname.replace(/\/[^\/]*$/, "/");
@@ -421,7 +441,12 @@ let tumblrStart = 0;
 let tumblrTotal = null;
 let tumblrLoading = false;
 
-const SINGLE_POST_ID = getQueryParam("post");
+const SINGLE_POST_ID = (() => {
+  const qs = new URLSearchParams(location.search);
+  const postFromQuery = qs.get("post");
+  const postFromHash = parsePrettyHash();
+  return postFromQuery || postFromHash;
+})();
 
 function tumblrJsonUrl({ start, num, id }) {
   const base = `https://${TUMBLR_BLOG}.tumblr.com/api/read/json`;
@@ -587,8 +612,11 @@ function buildTumblrPostElement(p) {
     shareBtn.addEventListener("click", async (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const link = buildNativePostLink(p.id);
-      const ok = await copyToClipboard(link);
+      const shareUrl = `${location.origin}${location.pathname}${prettyHashForPost({
+        id: p.id,
+        title: inner.title,
+      })}`;
+      const ok = await copyToClipboard(shareUrl);
       if (ok) {
         const prev = shareBtn.textContent;
         shareBtn.textContent = "copied";
