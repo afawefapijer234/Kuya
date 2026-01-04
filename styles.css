@@ -54,7 +54,16 @@ a:hover{ text-decoration: underline; text-underline-offset: 3px; }
   color: var(--muted);
   font-size: 13px;
 }
-.links a{ color: var(--muted); }
+.links a{
+  text-decoration: none;
+  transition: color .15s ease;
+  color: var(--muted); 
+}
+
+.links a:hover{
+  color: var(--accent);
+  text-decoration: none;
+}
 
 .topbarRight{
   text-align:right;
