@@ -295,15 +295,21 @@ function injectTumblrUiStylesIfMissing(){
     .tumblrPost:hover .tumblrShareInline{ opacity: 1; }
     .tumblrShareInline:hover{ color: rgba(0,0,0,.82); }
 
-    .tumblrBody{ line-height: 1.55; }
+    .wrap,
+    .tumblrBody{
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
     .tumblrBody p{ margin: 0 0 10px; }
     .tumblrBody a{ text-decoration: underline; text-underline-offset: 3px; }
     .tumblrBody img{
-      max-width: 100%;
-      height: auto;
-      border-radius: 18px;
       display: block;
-      margin: 12px 0;
+      max-width: 860px;
+      width: 100%;
+      height: auto;
+      margin: 14px auto;
+      border-radius: 18px;
     }
     .tumblrBody blockquote{
       margin: 10px 0;
