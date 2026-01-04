@@ -38,6 +38,15 @@ a:hover{ text-decoration: underline; text-underline-offset: 3px; }
   color: var(--muted);
 }
 
+.nameHome{
+  display: inline-block;
+  text-decoration: none;
+}
+
+.nameHome:hover{
+  text-decoration: none !important;
+}
+
 .links{
   display:flex;
   flex-wrap:wrap;
