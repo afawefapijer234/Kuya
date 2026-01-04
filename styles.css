@@ -53,6 +53,51 @@ a:hover{
   text-decoration: none !important;
 }
 
+.brandRow{
+  display:flex;
+  align-items:baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.brandName{
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  color: rgba(0,0,0,.70);
+}
+
+.brandName:hover{
+  text-decoration: none;
+}
+
+.brandLabel{
+  font-size: 13px;
+  color: rgba(0,0,0,.42);
+}
+
+.statusMsg{
+  font-size: 13px;
+  color: rgba(0,0,0,.70);
+  position: relative;
+  white-space: nowrap;
+}
+
+.statusMsg::after{
+  content: "▍";
+  margin-left: 2px;
+  color: rgba(0,0,0,.28);
+  animation: caretBlink 1s steps(1) infinite;
+}
+
+@keyframes caretBlink{
+  50%{ opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .statusMsg::after{ animation: none; }
+}
+
 .links{
   display:flex;
   flex-wrap:wrap;
