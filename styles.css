@@ -265,7 +265,6 @@ a:hover{
   text-underline-offset: 3px;
 }
 
-/* images (aligned to text column; no auto-centering / weird wide container) */
 .tumblrBody img{
   display:block;
   width: 100%;
@@ -373,4 +372,18 @@ a:hover{
 @media (max-width: 520px){
   .topbar{ padding-top: 18px; }
   .topbarRight{ min-width: auto; }
+  .tumblrBody img{
+    width: calc(100% + 36px);
+    max-width: none;
+    margin-left: -18px;
+    margin-right: -18px;
+    border-radius: 14px;
+  }
+  .tumblrPhotoGrid{
+    width: calc(100% + 36px);
+    margin-left: -18px;
+    margin-right: -18px;
+    padding: 0 18px; /* keeps inner gap between images */
+  }
+}
 }
