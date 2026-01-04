@@ -1,5 +1,5 @@
-// app.js — FULL (Tumblr JSON API + pagination + lightbox zoom + hover date)
-// Replace your entire app.js with this.
+// app.js — FULL (Tumblr JSON API + single-post share links + pagination + lightbox zoom)
+// Replace your entire app.js with this. :contentReference[oaicite:0]{index=0}
 
 "use strict";
 
@@ -7,17 +7,17 @@
 const YT_CHANNEL_ID = "UCuDJUj1szS87hLRjXQKnmaA";
 const YT_CHANNEL_FALLBACK_URL = "https://www.youtube.com/@houseoftakuya";
 
-// Tumblr blog name (no @, no URL)
+// Tumblr blog name (no @, no protocol)
 const TUMBLR_BLOG = "takuyakitano";
 
-// Tiny “open original” symbol (pick one: "#", "↗", "⌁", "⎋", "·", "⊹")
+// Tiny “open original” symbol (not a Tumblr thing — just a glyph button)
 const POST_LINK_SYMBOL = "⌁";
 
-// Pagination
-const TUMBLR_PAGE_SIZE = 10; // how many posts per page
+// Share/copy glyph
+const SHARE_SYMBOL = "⟐";
 
-// If true, uses Tumblr JSON API (updates faster + better image data than RSS)
-const TUMBLR_USE_JSON_API = true;
+// Pagination
+const TUMBLR_PAGE_SIZE = 10;
 
 // ====== HUD ======
 const bpmEl = document.getElementById("bpm");
@@ -26,7 +26,7 @@ const tzEl = document.getElementById("tz");
 const statusEl = document.getElementById("status");
 const dot = document.querySelector(".dot");
 
-// YouTube UI (Bento-style 2x2 grid)
+// YouTube UI (if present)
 const ytGrid = document.getElementById("ytGrid");
 const ytSubs = document.getElementById("ytSubs");
 const ytChannelName = document.getElementById("ytChannelName");
@@ -91,14 +91,12 @@ function decodeXml(s){
     .replaceAll("&#39;", "'");
 }
 
+// Fetch helper (direct first; proxy fallback for CORS on static hosts)
 async function fetchRaw(url){
-  // Try direct first
   try{
     const r = await fetch(url, { cache: "no-store" });
     if(r.ok) return await r.text();
   }catch{}
-
-  // Proxy fallback (GitHub Pages + most static hosts need this for CORS)
   const proxied = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
   const r2 = await fetch(proxied, { cache: "no-store" });
   if(!r2.ok) throw new Error("fetch failed");
@@ -119,6 +117,28 @@ function formatDate(pubDate){
   const d = new Date(pubDate);
   if(Number.isNaN(d.getTime())) return "";
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+// Build a stable base URL for your site (works for /Kuya/ and /Kuya/index.html)
+function getSiteBaseUrl(){
+  const { origin, pathname } = window.location;
+  // If you're on .../index.html, strip filename; if you're on .../Kuya/, keep it.
+  const basePath = pathname.endsWith("/")
+    ? pathname
+    : pathname.replace(/\/[^\/]*$/, "/");
+  return origin + basePath;
+}
+
+function getQueryParam(name){
+  const u = new URL(window.location.href);
+  return u.searchParams.get(name);
+}
+
+function setQueryParam(name, value){
+  const u = new URL(window.location.href);
+  if(value == null || value === "") u.searchParams.delete(name);
+  else u.searchParams.set(name, String(value));
+  return u.toString();
 }
 
 // ====== LIGHTBOX (IMAGE ZOOM) ======
@@ -181,7 +201,7 @@ function ensureLightbox(){
   const closeBtn = document.createElement("button");
   closeBtn.type = "button";
   closeBtn.textContent = "Close";
-  closeBtn.addEventListener("click", () => closeLightbox());
+  closeBtn.addEventListener("click", closeLightbox);
 
   const img = document.createElement("img");
   img.alt = "";
@@ -223,7 +243,6 @@ function bindZoomableImages(container){
   imgs.forEach((im) => {
     if(im.dataset.zoomBound === "1") return;
     im.dataset.zoomBound = "1";
-
     im.style.cursor = "zoom-in";
     im.addEventListener("click", (e) => {
       e.preventDefault();
@@ -234,7 +253,7 @@ function bindZoomableImages(container){
   });
 }
 
-// ====== YOUTUBE: latest 4 via RSS (no API key), skip Shorts cheaply ======
+// ====== YOUTUBE: latest 4 via RSS (optional) ======
 function xmlAllBetween(xml, startTag, endTag){
   const out = [];
   let i = 0;
@@ -259,8 +278,8 @@ async function loadLatest4FromRss(){
   if(name && ytChannelName) ytChannelName.textContent = decodeXml(name);
 
   const entries = xml.split("<entry>").slice(1).map(s => "<entry>" + s);
-
   const picked = [];
+
   for(const entry of entries){
     const altLink = (entry.match(/<link[^>]+rel="alternate"[^>]+href="([^"]+)"/) || [])[1] || "";
     if(!altLink.includes("/watch?v=")) continue;
@@ -305,7 +324,7 @@ async function loadLatest4FromRss(){
   });
 }
 
-// ====== SUBSCRIBERS (no API key) via Shields JSON ======
+// ====== SUBSCRIBERS (optional) ======
 function compactNumberString(s){
   const txt = String(s || "—").trim();
   if(/[KM]$/i.test(txt)) return txt;
@@ -328,39 +347,34 @@ async function loadSubs(){
   }catch{}
 }
 
-// ====== TUMBLR FEED (JSON API + FULL CONTENT + FORMATTING + IMAGE ZOOM + BOTTOM PAGER) ======
+// ====== TUMBLR FEED (JSON API + formatting + full content + share links + bottom pager) ======
 let tumblrStart = 0;
-let tumblrTotal = null; // filled after first load
+let tumblrTotal = null;
 let tumblrLoading = false;
 
-function tumblrJsonUrl({ start, num }){
-  // JSONP endpoint (fastest + contains photo URLs). We parse the JS.
-  return `https://${TUMBLR_BLOG}.tumblr.com/api/read/json?num=${encodeURIComponent(num)}&start=${encodeURIComponent(start)}`;
+// shareable single post view: ?post=123456789
+const SINGLE_POST_ID = getQueryParam("post");
+
+function tumblrJsonUrl({ start, num, id }){
+  const base = `https://${TUMBLR_BLOG}.tumblr.com/api/read/json`;
+  if(id) return `${base}?id=${encodeURIComponent(id)}`;
+  return `${base}?num=${encodeURIComponent(num)}&start=${encodeURIComponent(start)}`;
 }
 
 function parseTumblrJsonp(text){
-  // Typical: "var tumblr_api_read = {...};"
   let t = String(text || "").trim();
-
-  // Strip leading "var tumblr_api_read ="
   t = t.replace(/^\s*var\s+tumblr_api_read\s*=\s*/i, "");
-
-  // Strip trailing ";" (and sometimes trailing whitespace)
   t = t.replace(/;\s*$/,"");
-
-  // Sometimes there are extra JS comments; this keeps it simple.
-  // At this point it should be valid JSON.
   return JSON.parse(t);
 }
 
-function pickBestPhotoUrl(post){
-  // Old API gives multiple sizes: photo-url-1280, photo-url-500, etc.
-  const keys = Object.keys(post || {});
-  const urlKeys = keys
+function pickBestPhotoUrl(obj){
+  const o = obj || {};
+  const urlKeys = Object.keys(o)
     .filter(k => /^photo-url-\d+$/i.test(k))
     .sort((a,b) => Number(b.split("-").pop()) - Number(a.split("-").pop()));
   for(const k of urlKeys){
-    if(post[k]) return post[k];
+    if(o[k]) return o[k];
   }
   return null;
 }
@@ -368,26 +382,18 @@ function pickBestPhotoUrl(post){
 function buildPostInnerHtml(post){
   const type = post?.type || "";
 
-  // Text
   if(type === "regular"){
     const title = post["regular-title"] || "";
     const body = post["regular-body"] || "";
-    return {
-      title,
-      html: sanitizeHtml(body)
-    };
+    return { title, html: sanitizeHtml(body) };
   }
 
-  // Photo
   if(type === "photo"){
     const caption = post["photo-caption"] || "";
-    // photos array exists for multi-photo
     const photos = Array.isArray(post.photos) ? post.photos : null;
-
     let html = "";
 
     if(photos && photos.length){
-      // Photos often have photo-url-1280 inside each photo object
       html += `<div class="tumblrPhotoGrid">`;
       for(const p of photos){
         const src = pickBestPhotoUrl(p) || p["photo-url-500"] || p["photo-url-400"] || "";
@@ -397,22 +403,13 @@ function buildPostInnerHtml(post){
       html += `</div>`;
     }else{
       const src = pickBestPhotoUrl(post);
-      if(src){
-        html += `<img src="${src}" alt="" loading="lazy" decoding="async" />`;
-      }
+      if(src) html += `<img src="${src}" alt="" loading="lazy" decoding="async" />`;
     }
 
-    if(caption){
-      html += `<div class="tumblrCaption">${sanitizeHtml(caption)}</div>`;
-    }
-
-    return {
-      title: "",
-      html
-    };
+    if(caption) html += `<div class="tumblrCaption">${sanitizeHtml(caption)}</div>`;
+    return { title: "", html };
   }
 
-  // Quote
   if(type === "quote"){
     const text = post["quote-text"] || "";
     const source = post["quote-source"] || "";
@@ -422,7 +419,6 @@ function buildPostInnerHtml(post){
     return { title: "", html };
   }
 
-  // Link
   if(type === "link"){
     const text = post["link-text"] || post["regular-title"] || "Link";
     const url = post["link-url"] || "";
@@ -435,14 +431,12 @@ function buildPostInnerHtml(post){
     return { title: "", html };
   }
 
-  // Chat
   if(type === "chat"){
     const title = post["chat-title"] || "";
     const body = post["chat-body"] || "";
     return { title, html: sanitizeHtml(body) };
   }
 
-  // Audio / Video / Answer fallback (just show caption/body if any)
   const fallbackTitle = post["regular-title"] || post["chat-title"] || "";
   const fallbackBody =
     post["regular-body"] ||
@@ -461,11 +455,10 @@ function injectTumblrUiStylesIfMissing(){
   const style = document.createElement("style");
   style.id = "tumblrUiStyles";
   style.textContent = `
+    /* NOTE: you asked to remove border-top from tumblrPost — handled here (no border) */
     .tumblrPost{
       padding: 18px 0;
-      border-top: 1px solid rgba(0,0,0,.08);
     }
-    .tumblrPost:first-child{ border-top: 0; }
 
     .tumblrHead{
       display: flex;
@@ -474,13 +467,15 @@ function injectTumblrUiStylesIfMissing(){
       gap: 12px;
       margin-bottom: 10px;
     }
+
     .tumblrHeadLeft{
+      min-width: 0;
       display: flex;
       align-items: baseline;
-      gap: 14px;
+      gap: 12px;
       flex-wrap: wrap;
-      min-width: 0;
     }
+
     .tumblrPostTitle{
       font-weight: 600;
       letter-spacing: .01em;
@@ -488,41 +483,30 @@ function injectTumblrUiStylesIfMissing(){
       overflow-wrap: anywhere;
     }
 
-    /* date hidden unless hover on the post */
+    /* date top-right, hidden until hover on the post */
+    .tumblrHeadRight{
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex: 0 0 auto;
+      min-width: 0;
+    }
     .tumblrPostDate{
       opacity: 0;
-      font-size: .95em;
+      font-size: 12px;
       white-space: nowrap;
       transition: opacity .18s ease;
     }
     .tumblrPost:hover .tumblrPostDate{ opacity: .55; }
 
-    /* tiny open symbol button */
-    .tumblrOpen{
-      text-decoration: none;
-      opacity: .55;
-      font-weight: 600;
-      border: 1px solid rgba(0,0,0,.14);
-      border-radius: 999px;
-      padding: 4px 10px;
-      line-height: 1;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      user-select: none;
-      flex: 0 0 auto;
-    }
-    .tumblrOpen:hover{ opacity: .9; }
-
-    .tumblrBody{
-      line-height: 1.55;
-    }
+    /* body */
+    .tumblrBody{ line-height: 1.55; }
     .tumblrBody p{ margin: 0 0 10px; }
-    .tumblrBody a{ text-decoration: underline; }
+    .tumblrBody a{ text-decoration: underline; text-underline-offset: 3px; }
     .tumblrBody img{
       max-width: 100%;
       height: auto;
-      border-radius: 14px;
+      border-radius: 18px;
       display: block;
       margin: 12px 0;
     }
@@ -532,9 +516,7 @@ function injectTumblrUiStylesIfMissing(){
       border-left: 2px solid rgba(0,0,0,.18);
       opacity: .95;
     }
-    .tumblrCaption{
-      opacity: .92;
-    }
+    .tumblrCaption{ opacity: .92; }
 
     /* multi-photo layout */
     .tumblrPhotoGrid{
@@ -546,14 +528,49 @@ function injectTumblrUiStylesIfMissing(){
       .tumblrPhotoGrid{ grid-template-columns: 1fr; }
     }
 
-    /* bottom pager like “back in time / forward in time” */
+    /* footer buttons (bottom-right like the reference) */
+    .tumblrFoot{
+      margin-top: 10px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .tumblrOpen,
+    .tumblrShare{
+      border: 1px solid rgba(0,0,0,.14);
+      background: transparent;
+      border-radius: 999px;
+      padding: 6px 10px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      opacity: .65;
+      user-select: none;
+    }
+    .tumblrOpen:hover,
+    .tumblrShare:hover{ opacity: .95; }
+
+    .tumblrShare{
+      cursor: pointer;
+      font: inherit;
+    }
+
+    /* tiny “copied” affordance */
+    .tumblrShare.copied{
+      opacity: 1;
+      border-color: rgba(0,0,0,.22);
+    }
+
+    /* bottom pager */
     .tumblrPager{
       display: flex;
       justify-content: space-between;
       gap: 12px;
       padding: 18px 0 4px;
+      margin-top: 14px;
       border-top: 1px solid rgba(0,0,0,.08);
-      margin-top: 8px;
     }
     .tumblrPager .spacer{ flex: 1; }
     .tumblrPager button{
@@ -566,10 +583,6 @@ function injectTumblrUiStylesIfMissing(){
       opacity: .75;
     }
     .tumblrPager button:hover{ opacity: 1; }
-    .tumblrPager button:disabled{
-      opacity: .35;
-      cursor: not-allowed;
-    }
   `;
   document.head.appendChild(style);
 }
@@ -577,50 +590,200 @@ function injectTumblrUiStylesIfMissing(){
 function renderTumblrPager(){
   if(!tumblrFeed) return;
 
-  // remove existing pager
   tumblrFeed.querySelectorAll(".tumblrPager").forEach(n => n.remove());
 
-  // Only show pager if we know there are more posts in either direction
+  // On single-post view, no pager
+  if(SINGLE_POST_ID) return;
+
   const canForward = tumblrStart > 0;
   const canBack = (tumblrTotal == null)
-    ? true // unknown total; allow “back in time” unless API says otherwise later
+    ? true
     : (tumblrStart + TUMBLR_PAGE_SIZE) < tumblrTotal;
 
-  // If neither direction exists, show nothing
+  // If Tumblr tells us total and we're at both ends, show nothing.
   if(!canForward && !canBack) return;
 
   const pager = document.createElement("div");
   pager.className = "tumblrPager";
 
-  const forwardBtn = document.createElement("button");
-  forwardBtn.type = "button";
-  forwardBtn.textContent = "forward in time";
-  forwardBtn.disabled = !canForward || tumblrLoading;
-  forwardBtn.addEventListener("click", () => {
-    if(tumblrLoading) return;
-    tumblrStart = Math.max(0, tumblrStart - TUMBLR_PAGE_SIZE);
-    loadTumblrFeed().catch(() => {});
-  });
+  // Only render the buttons that make sense (so you don’t “see both” when not available)
+  if(canForward){
+    const forwardBtn = document.createElement("button");
+    forwardBtn.type = "button";
+    forwardBtn.textContent = "forward in time";
+    forwardBtn.disabled = tumblrLoading;
+    forwardBtn.addEventListener("click", () => {
+      if(tumblrLoading) return;
+      tumblrStart = Math.max(0, tumblrStart - TUMBLR_PAGE_SIZE);
+      loadTumblrFeed().catch(() => {});
+    });
+    pager.appendChild(forwardBtn);
+  }else{
+    const spacerLeft = document.createElement("div");
+    spacerLeft.className = "spacer";
+    pager.appendChild(spacerLeft);
+  }
 
-  const backBtn = document.createElement("button");
-  backBtn.type = "button";
-  backBtn.textContent = "back in time";
-  backBtn.disabled = !canBack || tumblrLoading;
-  backBtn.addEventListener("click", () => {
-    if(tumblrLoading) return;
-    tumblrStart = tumblrStart + TUMBLR_PAGE_SIZE;
-    loadTumblrFeed().catch(() => {});
-  });
+  const midSpacer = document.createElement("div");
+  midSpacer.className = "spacer";
+  pager.appendChild(midSpacer);
 
-  const spacer = document.createElement("div");
-  spacer.className = "spacer";
-
-  // Layout: forward (newer) left, back (older) right
-  pager.appendChild(forwardBtn);
-  pager.appendChild(spacer);
-  pager.appendChild(backBtn);
+  if(canBack){
+    const backBtn = document.createElement("button");
+    backBtn.type = "button";
+    backBtn.textContent = "back in time";
+    backBtn.disabled = tumblrLoading;
+    backBtn.addEventListener("click", () => {
+      if(tumblrLoading) return;
+      tumblrStart = tumblrStart + TUMBLR_PAGE_SIZE;
+      loadTumblrFeed().catch(() => {});
+    });
+    pager.appendChild(backBtn);
+  }
 
   tumblrFeed.appendChild(pager);
+}
+
+async function copyToClipboard(text){
+  try{
+    await navigator.clipboard.writeText(text);
+    return true;
+  }catch{
+    // fallback
+    try{
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    }catch{
+      return false;
+    }
+  }
+}
+
+function buildNativePostLink(postId){
+  // share links should open your site showing just that post
+  // Use ?post=<id>
+  const base = getSiteBaseUrl();
+  const u = new URL(base);
+  u.searchParams.set("post", String(postId));
+  return u.toString();
+}
+
+function setDocumentTitleForSinglePost(titleText){
+  if(!SINGLE_POST_ID) return;
+  const base = "KUYA";
+  if(titleText && String(titleText).trim()){
+    document.title = `${titleText} — ${base}`;
+  }else{
+    document.title = `${base} — post`;
+  }
+}
+
+function buildTumblrPostElement(p){
+  const post = document.createElement("article");
+  post.className = "tumblrPost";
+  post.dataset.postId = String(p?.id || "");
+
+  const inner = buildPostInnerHtml(p);
+
+  // HEAD
+  const head = document.createElement("div");
+  head.className = "tumblrHead";
+
+  const left = document.createElement("div");
+  left.className = "tumblrHeadLeft";
+
+  if(inner.title){
+    const t = document.createElement("div");
+    t.className = "tumblrPostTitle";
+    t.textContent = inner.title;
+    left.appendChild(t);
+  }
+
+  const right = document.createElement("div");
+  right.className = "tumblrHeadRight";
+
+  const d = document.createElement("div");
+  d.className = "tumblrPostDate";
+  d.textContent = formatDate(p?.date_gmt || p?.date || "");
+  right.appendChild(d);
+
+  head.appendChild(left);
+  head.appendChild(right);
+
+  // BODY
+  const body = document.createElement("div");
+  body.className = "tumblrBody";
+  body.innerHTML = inner.html || "";
+  bindZoomableImages(body);
+
+  // FOOT (bottom-right buttons)
+  const foot = document.createElement("div");
+  foot.className = "tumblrFoot";
+
+  const postId = p?.id;
+  const tumblrUrl = p?.url_with_slug || p?.url || "";
+
+  // Share button (copies native link)
+  if(postId){
+    const shareBtn = document.createElement("button");
+    shareBtn.className = "tumblrShare";
+    shareBtn.type = "button";
+    shareBtn.setAttribute("aria-label", "Copy link");
+    shareBtn.title = "Copy link";
+    shareBtn.textContent = SHARE_SYMBOL;
+
+    shareBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const link = buildNativePostLink(postId);
+      const ok = await copyToClipboard(link);
+
+      if(ok){
+        shareBtn.classList.add("copied");
+        const prev = shareBtn.textContent;
+        shareBtn.textContent = "copied";
+        setTimeout(() => {
+          shareBtn.textContent = prev;
+          shareBtn.classList.remove("copied");
+        }, 900);
+      }
+    });
+
+    foot.appendChild(shareBtn);
+  }
+
+  // Open original (tiny symbol)
+  if(tumblrUrl){
+    const open = document.createElement("a");
+    open.className = "tumblrOpen";
+    open.href = tumblrUrl;
+    open.target = "_blank";
+    open.rel = "noreferrer";
+    open.setAttribute("aria-label", "Open on Tumblr");
+    open.title = "Open on Tumblr";
+    open.textContent = POST_LINK_SYMBOL;
+    foot.appendChild(open);
+  }
+
+  // Compose
+  post.appendChild(head);
+
+  const hasBody = (body.textContent || "").trim().length > 0 || body.querySelector("img, video, audio, iframe");
+  if(hasBody) post.appendChild(body);
+
+  // Only append footer if it actually has any buttons
+  if(foot.childElementCount > 0) post.appendChild(foot);
+
+  return post;
 }
 
 async function loadTumblrFeed(){
@@ -631,82 +794,49 @@ async function loadTumblrFeed(){
   if(tumblrLoading) return;
   tumblrLoading = true;
 
-  // Keep scroll position stable-ish on pagination
   const topAnchor = tumblrFeed.getBoundingClientRect().top + window.scrollY;
 
   try{
     tumblrFeed.textContent = "Loading…";
 
-    const url = tumblrJsonUrl({ start: tumblrStart, num: TUMBLR_PAGE_SIZE });
+    const url = tumblrJsonUrl({
+      start: tumblrStart,
+      num: TUMBLR_PAGE_SIZE,
+      id: SINGLE_POST_ID || null
+    });
+
     const raw = await fetchRaw(url);
     const data = parseTumblrJsonp(raw);
 
     tumblrTotal = Number.isFinite(Number(data?.posts_total)) ? Number(data.posts_total) : tumblrTotal;
 
     const posts = Array.isArray(data?.posts) ? data.posts : [];
+
     tumblrFeed.innerHTML = "";
 
     if(!posts.length){
       tumblrFeed.textContent = "No posts yet.";
-      tumblrLoading = false;
       return;
     }
 
-    posts.forEach((p) => {
-      const post = document.createElement("article");
-      post.className = "tumblrPost";
-
-      const head = document.createElement("div");
-      head.className = "tumblrHead";
-
-      const left = document.createElement("div");
-      left.className = "tumblrHeadLeft";
-
-      const d = document.createElement("div");
-      d.className = "tumblrPostDate";
-      d.textContent = formatDate(p?.date_gmt || p?.date || "");
+    // Single post view: only render the one, and set title
+    if(SINGLE_POST_ID){
+      const p = posts[0];
+      const el = buildTumblrPostElement(p);
+      tumblrFeed.appendChild(el);
 
       const inner = buildPostInnerHtml(p);
+      setDocumentTitleForSinglePost(inner.title || "");
 
-      // Title only if present
-      if(inner.title){
-        const t = document.createElement("div");
-        t.className = "tumblrPostTitle";
-        t.textContent = inner.title;
-        left.appendChild(t);
-      }
+      // If someone lands here, ensure the feed is at top
+      window.scrollTo({ top: Math.max(0, topAnchor - 24), behavior: "instant" });
+      return;
+    }
 
-      // date always present (but hidden until hover)
-      left.appendChild(d);
-
-      // Small open symbol button (NOT whole post clickable)
-      const open = document.createElement("a");
-      open.className = "tumblrOpen";
-      open.href = p?.url || p?.url_with_slug || "#";
-      open.target = "_blank";
-      open.rel = "noreferrer";
-      open.setAttribute("aria-label", "Open on Tumblr");
-      open.title = "Open on Tumblr";
-      open.textContent = POST_LINK_SYMBOL;
-
-      head.appendChild(left);
-      // Only show open button if we actually have a URL
-      if(open.href && open.href !== "#") head.appendChild(open);
-
-      const body = document.createElement("div");
-      body.className = "tumblrBody";
-      body.innerHTML = inner.html || "";
-
-      // Zoom bind on images inside body
-      bindZoomableImages(body);
-
-      post.appendChild(head);
-
-      // Only append body if it has anything meaningful
-      const hasBody = (body.textContent || "").trim().length > 0 || body.querySelector("img, video, audio, iframe");
-      if(hasBody) post.appendChild(body);
-
-      tumblrFeed.appendChild(post);
+    // Normal feed view
+    posts.forEach((p) => {
+      const el = buildTumblrPostElement(p);
+      tumblrFeed.appendChild(el);
     });
 
     renderTumblrPager();
@@ -715,11 +845,10 @@ async function loadTumblrFeed(){
     const newTop = tumblrFeed.getBoundingClientRect().top + window.scrollY;
     const delta = newTop - topAnchor;
     window.scrollTo({ top: window.scrollY + delta, behavior: "instant" });
-  }catch(e){
+  }catch{
     tumblrFeed.textContent = "Unable to load Tumblr feed.";
   }finally{
     tumblrLoading = false;
-    // Update pager disabled state
     renderTumblrPager();
   }
 }
@@ -739,7 +868,7 @@ window.addEventListener("online", updateOnline);
 window.addEventListener("offline", updateOnline);
 window.addEventListener("scroll", () => tickBpm());
 
-// Loads (only run what exists on the page)
+// Loads (only run what exists)
 loadLatest4FromRss().catch(() => {});
 loadSubs().catch(() => {});
 loadTumblrFeed().catch(() => {});
