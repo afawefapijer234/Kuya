@@ -62,12 +62,14 @@ a:hover{
 
 .brandName{
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: .01em;
-  color: rgba(0,0,0,.70);
+  color: var(--muted);
+  text-decoration: none;
 }
 
 .brandName:hover{
+  color: var(--accent);
   text-decoration: none;
 }
 
