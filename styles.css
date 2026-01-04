@@ -93,11 +93,81 @@ a:hover{ text-decoration: underline; text-underline-offset: 3px; }
 }
 
 .tumblrFeed{
-  display:flex;
-  flex-direction:column;
-  gap: 22px;
-  padding-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
+
+
+.tumblrItem{
+  border-top: 1px solid rgba(0,0,0,.08);
+  padding-top: 14px;
+}
+
+.tumblrHead{
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.tumblrTitle{
+  font-weight: 600;
+}
+
+.tumblrMeta{
+  opacity: .55;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.tumblrBody{
+  margin-top: 10px;
+  line-height: 1.55;
+}
+
+/* preserve formatting */
+.tumblrBody b,
+.tumblrBody strong{ font-weight: 700; }
+.tumblrBody em,
+.tumblrBody i{ font-style: italic; }
+
+.tumblrBody p{ margin: 0 0 10px; }
+.tumblrBody blockquote{
+  margin: 10px 0;
+  padding-left: 12px;
+  border-left: 2px solid rgba(0,0,0,.12);
+  opacity: .9;
+}
+.tumblrBody ul,
+.tumblrBody ol{ margin: 8px 0 12px 20px; }
+
+.tumblrBody img{
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 18px;
+  margin: 12px 0;
+}
+
+/* button instead of whole post being clickable */
+.tumblrFoot{
+  margin-top: 10px;
+}
+
+.tumblrOpen{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,.10);
+  text-decoration: none;
+  color: inherit;
+  opacity: .85;
+}
+
+.tumblrOpen:hover{ opacity: 1; }
 
 .post{
   padding-top: 16px;
