@@ -16,8 +16,14 @@ body{
   font: 13px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
 }
 
-a{ color: inherit; text-decoration: none; }
-a:hover{ text-decoration: underline; text-underline-offset: 3px; }
+a{ 
+  color: inherit;
+  text-decoration: none;
+}
+a:hover{
+  color: var(--accent);
+  text-decoration: none;
+}
 
 /* ====== TOP BAR ====== */
 .topbar{
@@ -53,15 +59,6 @@ a:hover{ text-decoration: underline; text-underline-offset: 3px; }
   gap: 14px;
   color: var(--muted);
   font-size: 13px;
-}
-.links a{
-  text-decoration: none;
-  color: var(--muted); 
-}
-
-.links a:hover{
-  color: var(--accent);
-  text-decoration: none;
 }
 
 .topbarRight{
@@ -243,7 +240,7 @@ a:hover{ text-decoration: underline; text-underline-offset: 3px; }
   .tumblrPhotoGrid{ grid-template-columns: 1fr; }
 }
 
-/* sign-off centered at bottom: "- takuya" classic hyperlink style */
+/* "- takuya" section */
 .tumblrSignoff{
   margin-top: 12px;
   text-align: center;
