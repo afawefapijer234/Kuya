@@ -1,10 +1,9 @@
 // ====== CONFIG ======
 const YT_CHANNEL_ID = "UCuDJUj1szS87hLRjXQKnmaA";
 const YT_CHANNEL_FALLBACK_URL = "https://www.youtube.com/@houseoftakuya";
-const TUMBLR_RSS_URLS = [
-  "https://www.tumblr.com/blog/takuyakitano/rss",
-  "https://takuyakitano.tumblr.com/rss"
-];
+
+// Your Tumblr RSS (this is the one you want)
+const TUMBLR_RSS_URL = "https://takuyakitano.tumblr.com/rss";
 
 // ====== HUD ======
 const bpmEl = document.getElementById("bpm");
@@ -13,7 +12,7 @@ const tzEl = document.getElementById("tz");
 const statusEl = document.getElementById("status");
 const dot = document.querySelector(".dot");
 
-// YouTube UI (Bento-style 2x2 grid)
+// YouTube UI (optional — won’t run if elements aren’t on the page)
 const ytGrid = document.getElementById("ytGrid");
 const ytSubs = document.getElementById("ytSubs");
 const ytChannelName = document.getElementById("ytChannelName");
@@ -203,14 +202,14 @@ function sanitizeTumblrHtml(html){
   doc.querySelectorAll("script, style, iframe, object, embed, form, input, button, textarea, select").forEach(n => n.remove());
 
   const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT, null);
-  const toRemove = [];
+  const toUnwrap = [];
   while(walker.nextNode()){
     const el = walker.currentNode;
     const tag = el.tagName;
 
-    // drop disallowed tags but keep their text/children (unwrap)
+    // unwrap disallowed tags (keep children)
     if(!TUMBLR_ALLOWED_TAGS.has(tag)){
-      toRemove.push(el);
+      toUnwrap.push(el);
       continue;
     }
 
@@ -220,7 +219,7 @@ function sanitizeTumblrHtml(html){
       const val = attr.value || "";
 
       if(name.startsWith("on")) el.removeAttribute(attr.name);
-      if(name === "style") el.removeAttribute("style"); // keep your site styling clean
+      if(name === "style") el.removeAttribute("style");
       if(name === "srcset") el.removeAttribute("srcset");
       if(name === "data-src") el.removeAttribute("data-src");
       if(name === "data-orig-file") el.removeAttribute("data-orig-file");
@@ -232,24 +231,23 @@ function sanitizeTumblrHtml(html){
       if((name === "href" || name === "src") && /^\s*javascript:/i.test(val)) el.removeAttribute(attr.name);
     });
 
-    // normalize links to open new tab (but ONLY when user clicks the link itself)
+    // Links should open in new tab, but only if user clicks the link itself
     if(tag === "A"){
       el.setAttribute("target", "_blank");
       el.setAttribute("rel", "noopener noreferrer");
     }
 
-    // make images nice + lazy
+    // Images: lazy + keep src
     if(tag === "IMG"){
       el.setAttribute("loading", "lazy");
       el.setAttribute("decoding", "async");
-      // Tumblr sometimes uses weird placeholders; keep only src
       const src = el.getAttribute("src") || "";
-      if(!src) toRemove.push(el);
+      if(!src) toUnwrap.push(el);
     }
   }
 
-  // unwrap disallowed tags
-  toRemove.forEach(el => {
+  // unwrap nodes we don't want to keep
+  toUnwrap.forEach(el => {
     const parent = el.parentNode;
     if(!parent) return;
     while(el.firstChild) parent.insertBefore(el.firstChild, el);
@@ -272,28 +270,21 @@ async function loadTumblrFeed(){
   tumblrFeed.textContent = "Loading…";
 
   try{
-    let xml = "";
-    let lastError = null;
+    const xml = await fetchRaw(TUMBLR_RSS_URL);
 
-    for(const url of TUMBLR_RSS_URLS){
-      try{
-        xml = await fetchRaw(url);
-        if(xml) break;
-      }catch(err){
-        lastError = err;
-      }
-    }
-    if(!xml) throw lastError || new Error("feed unavailable");
+    const items = xml
+      .split("<item>")
+      .slice(1)
+      .map(s => "<item>" + s)
+      .slice(0, 20); // show more if you want
 
-    const items = xml.split("<item>").slice(1).map(s => "<item>" + s).slice(0, 10);
-
-    const picked = items.map((item) => {
+    const posts = items.map((item) => {
       const title = decodeXml((item.match(/<title>([^<]*)<\/title>/) || [])[1] || "");
-      const link = decodeXml((item.match(/<link>([^<]+)<\/link>/) || [])[1] || TUMBLR_RSS_URLS[0]);
+      const link = decodeXml((item.match(/<link>([^<]+)<\/link>/) || [])[1] || TUMBLR_RSS_URL);
       const pubDate = decodeXml((item.match(/<pubDate>([^<]+)<\/pubDate>/) || [])[1] || "");
       const descriptionRaw = decodeXml((item.match(/<description>([\s\S]*?)<\/description>/) || [])[1] || "");
 
-      // Tumblr often wraps the real HTML inside CDATA. RSS gives it in <description>.
+      // IMPORTANT: no truncation — full HTML (sanitized)
       const html = sanitizeTumblrHtml(descriptionRaw);
 
       return { title, link, pubDate, html };
@@ -301,12 +292,12 @@ async function loadTumblrFeed(){
 
     tumblrFeed.innerHTML = "";
 
-    if(!picked.length){
+    if(!posts.length){
       tumblrFeed.textContent = "No posts yet.";
       return;
     }
 
-    picked.forEach(({ title, link, pubDate, html }) => {
+    posts.forEach(({ title, link, pubDate, html }) => {
       const post = document.createElement("article");
       post.className = "tumblrItem";
 
@@ -325,11 +316,13 @@ async function loadTumblrFeed(){
 
       const body = document.createElement("div");
       body.className = "tumblrBody";
+      // keeps bold/italics/lists/images/etc (sanitized)
       body.innerHTML = html || "";
 
       const foot = document.createElement("footer");
       foot.className = "tumblrFoot";
 
+      // IMPORTANT: post itself is NOT a link — only this button is
       const btn = document.createElement("a");
       btn.className = "tumblrOpen";
       btn.href = link;
@@ -362,7 +355,7 @@ window.addEventListener("online", updateOnline);
 window.addEventListener("offline", updateOnline);
 window.addEventListener("scroll", () => tickBpm());
 
-// Loads
+// Loads (safe: each function no-ops if elements don’t exist)
 loadLatest4FromRss().catch(() => {});
 loadSubs().catch(() => {});
 loadTumblrFeed().catch(() => {});
