@@ -186,6 +186,14 @@ a:hover{ text-decoration: underline; text-underline-offset: 3px; }
   color: var(--muted);
 }
 
+.postDate { opacity: 0; transition: opacity .15s ease; }
+.post:hover .postDate { opacity: 1; }
+
+/* optional: on touch devices, just show it */
+@media (hover: none) {
+  .postDate { opacity: 1; }
+}
+
 .postTitle{
   font-size: 13px;
   font-weight: 600;
