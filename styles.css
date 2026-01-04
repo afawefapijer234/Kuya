@@ -391,4 +391,36 @@ a:hover{
     padding: 0 18px; /* keeps inner gap between images */
   }
 }
+
+/* ====== KILL TUMBLR FIGURE SIDE MARGINS (THE 40PX) ====== */
+.tumblrBody figure.tmblr-full,
+.tumblrBody figure.tmblr-embed,
+.tumblrBody figure{
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* keep media aligned with text column on desktop */
+.tumblrBody figure.tmblr-full,
+.tumblrBody figure.tmblr-embed{
+  width: 100%;
+}
+
+/* ====== MOBILE: FULL-BLEED MEDIA (NEGATE WRAP PADDING) ====== */
+@media (max-width: 520px){
+  .tumblrBody figure.tmblr-full,
+  .tumblrBody figure.tmblr-embed{
+    width: calc(100% + 36px) !important;
+    margin-left: -18px !important;
+    margin-right: -18px !important;
+  }
+
+  /* make sure the actual image fills the figure */
+  .tumblrBody figure.tmblr-full img,
+  .tumblrBody figure.tmblr-embed img{
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
 }
