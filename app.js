@@ -66,6 +66,43 @@ function getQueryParam(name) {
   return new URL(window.location.href).searchParams.get(name);
 }
 
+function stripHtml(s) {
+  return String(s || "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function slugify(s) {
+  return String(s || "")
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+function deriveTitle(post) {
+  const t = stripHtml(post?.title || "");
+  if (t) return t;
+
+  const bodyText = stripHtml(post?.html || post?.description || post?.body || "");
+  if (!bodyText) return "post";
+  return bodyText.slice(0, 60);
+}
+
+function prettyHashForPost(post) {
+  const title = deriveTitle(post);
+  const slug = slugify(title) || "post";
+  return `#/${slug}--${post.id}`;
+}
+
+function parsePrettyHash() {
+  const h = location.hash || "";
+  const m = h.match(/^#\/.*--(\d+)$/);
+  return m ? m[1] : null;
+}
+
 function slugify(s) {
   return String(s || "")
     .toLowerCase()
@@ -440,13 +477,23 @@ async function loadSubs() {
 let tumblrStart = 0;
 let tumblrTotal = null;
 let tumblrLoading = false;
+let currentRouteId = null;
 
-const SINGLE_POST_ID = (() => {
+function getActivePostId() {
   const qs = new URLSearchParams(location.search);
   const postFromQuery = qs.get("post");
   const postFromHash = parsePrettyHash();
   return postFromQuery || postFromHash;
-})();
+}
+
+function applyRoute() {
+  if (tumblrLoading) return;
+  const activeId = getActivePostId();
+  if (activeId === currentRouteId) return;
+  currentRouteId = activeId;
+  tumblrStart = 0;
+  loadTumblrFeed().catch(() => {});
+}
 
 function tumblrJsonUrl({ start, num, id }) {
   const base = `https://${TUMBLR_BLOG}.tumblr.com/api/read/json`;
@@ -570,7 +617,7 @@ function buildNativePostLink(postId) {
 }
 
 function setDocumentTitleForSinglePost(titleText) {
-  if (!SINGLE_POST_ID) return;
+  if (!getActivePostId()) return;
   const base = "KUYA";
   const t = String(titleText || "").trim();
   document.title = t ? `${t} — ${base}` : `${base} — post`;
@@ -615,6 +662,7 @@ function buildTumblrPostElement(p) {
       const shareUrl = `${location.origin}${location.pathname}${prettyHashForPost({
         id: p.id,
         title: inner.title,
+        html: inner.html,
       })}`;
       const ok = await copyToClipboard(shareUrl);
       if (ok) {
@@ -672,7 +720,7 @@ function renderTumblrPager() {
   if (!tumblrFeed) return;
 
   tumblrFeed.querySelectorAll(".tumblrPager").forEach((n) => n.remove());
-  if (SINGLE_POST_ID) return;
+  if (getActivePostId()) return;
 
   const canForward = tumblrStart > 0;
   const canBack =
@@ -726,6 +774,7 @@ async function loadTumblrFeed() {
   if (tumblrLoading) return;
 
   tumblrLoading = true;
+const activePostId = getActivePostId();
 
   const topAnchor = tumblrFeed.getBoundingClientRect().top + window.scrollY;
 
@@ -735,7 +784,7 @@ async function loadTumblrFeed() {
     const url = tumblrJsonUrl({
       start: tumblrStart,
       num: TUMBLR_PAGE_SIZE,
-      id: SINGLE_POST_ID || null,
+      id: activePostId || null,
     });
 
     const raw = await fetchRaw(url);
@@ -754,7 +803,7 @@ async function loadTumblrFeed() {
       return;
     }
 
-    if (SINGLE_POST_ID) {
+    if (activePostId) {
       const p = posts[0];
       const el = buildTumblrPostElement(p);
       tumblrFeed.appendChild(el);
@@ -777,6 +826,7 @@ async function loadTumblrFeed() {
   } finally {
     tumblrLoading = false;
     renderTumblrPager();
+    applyRoute();
   }
 }
 
@@ -796,6 +846,8 @@ setInterval(tickBpm, 850);
 window.addEventListener("online", updateOnline);
 window.addEventListener("offline", updateOnline);
 window.addEventListener("scroll", () => tickBpm());
+window.addEventListener("hashchange", applyRoute);
+window.addEventListener("popstate", applyRoute);
 
 loadLatest4FromRss().catch(() => {});
 loadSubs().catch(() => {});
