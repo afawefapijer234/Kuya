@@ -34,11 +34,11 @@ const yearEl = document.getElementById("year");
 const statusElTop = document.getElementById("statusMsg");
 
 const STATUS_ITEMS = [
-  "says: san q berry muchee...",
-  "is currently using the bathroom",
-  "is currently working out",
-  "is shopping for new clothes",
-  "is recording a new video",
+  { mode: "says", text: "san q berry muchee..." },
+  { mode: "is", text: "currently using the bathroom" },
+  { mode: "is", text: "currently working out" },
+  { mode: "is", text: "shopping for new clothes" },
+  { mode: "is", text: "recording a new video" },
 ];
 
 /* =========================================================
@@ -152,87 +152,44 @@ function isPunct(ch){
 }
 function isSpace(ch){ return ch === " " || ch === "\n" || ch === "\t"; }
 
-async function runTypewriter(el, items){
-  if(!el || !items?.length) return;
+async function runTypewriter(el, items) {
+  const leadEl = document.getElementById("statusLead");
 
-  const reduce = window.matchMedia &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if(reduce){
-    const first = items[0];
-    el.textContent = first.mode === "says" ? `says: ${first.text}` : `is ${first.text}`;
-    return;
-  }
+  while (true) {
+    for (const item of items) {
+      // set the lead word ("says:" only for the first one, "is" for the rest)
+      if (leadEl) {
+        leadEl.textContent = item.mode === "says" ? "says:" : "is";
+      }
 
-  // speeds
-  const typeMin = 60;
-  const typeMax = 105;
-  const eraseMin = 30;
-  const eraseMax = 60;
+      const full = item.text;
 
-  // hold
-  const holdMin = 2400;
-  const holdMax = 4200;
+      el.textContent = "";
+      const thinkPause = () => (Math.random() < 0.12 ? 180 + Math.random() * 320 : 0);
+       
+      for (let i = 0; i < full.length; i++) {
+        el.textContent += full[i];
+        const ch = full[i];
+        const base = 38 + Math.random() * 60; // slower
+        const extra =
+          ch === "." ? 180 + Math.random() * 220 :
+          ch === "," ? 120 + Math.random() * 180 :
+          ch === " " ? 0 :
+          0;
 
-  // gap between messages
-  const gapMin = 500;
-  const gapMax = 900;
+        await sleep(base + extra + thinkPause());
+      }
 
-  // pauses that feel human
-  const microPauseChance = 0.08;
-  const microPauseMin = 90;
-  const microPauseMax = 240;
+      await sleep(900 + Math.random() * 900);
+       
+      while (el.textContent.length) {
+        el.textContent = el.textContent.slice(0, -1);
+        const base = 20 + Math.random() * 45;
+        await sleep(base + thinkPause());
+      }
 
-  const commaPauseMin = 170;
-  const commaPauseMax = 320;
-
-  const punctPauseMin = 260;
-  const punctPauseMax = 620;
-
-  const spacePauseChance = 0.06;
-  const spacePauseMin = 70;
-  const spacePauseMax = 160;
-
-  let i = 0;
-
-  while(true){
-    const item = items[i % items.length];
-     item.mode === "says"
-      ? `says: ${item.text}`
-      : `is ${item.text}`;
-
-    el.textContent = "";
-
-    // type out
-    for(let c = 0; c < full.length; c++){
-      const ch = full[c];
-      el.textContent += ch;
-
-      let delay = randInt(typeMin, typeMax);
-
-      if(ch === ",") delay += randInt(commaPauseMin, commaPauseMax);
-      else if(isPunct(ch)) delay += randInt(punctPauseMin, punctPauseMax);
-      else if(isSpace(ch) && Math.random() < spacePauseChance) delay += randInt(spacePauseMin, spacePauseMax);
-      else if(Math.random() < microPauseChance) delay += randInt(microPauseMin, microPauseMax);
-
-      await sleep(delay);
+      await sleep(250 + Math.random() * 350);
     }
-
-    // hold
-    await sleep(randInt(holdMin, holdMax));
-
-    // erase
-    for(let c = full.length; c >= 0; c--){
-      const prevChar = full[c - 1] || "";
-      el.textContent = full.slice(0, c);
-
-      let delay = randInt(eraseMin, eraseMax);
-      if(isPunct(prevChar)) delay += randInt(40, 140);
-
-      await sleep(delay);
-    }
-
-    await sleep(randInt(gapMin, gapMax));
-    i++;
   }
 }
 
