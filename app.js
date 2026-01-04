@@ -30,6 +30,69 @@ const ytCard = document.getElementById("ytCard");
 const tumblrFeed = document.getElementById("tumblrFeed");
 const yearEl = document.getElementById("year");
 
+// ====== STATUS TYPEWRITER ======
+const statusElTop = document.getElementById("statusMsg");
+
+const STATUS_LINES = [
+  "san q berry muchee...",
+  "is currently using the bathroom",
+  "is currently working out",
+  "is shopping for new clothes",
+  "is recording a new video",
+];
+
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+async function runTypewriter(el, lines) {
+  if (!el || !lines?.length) return;
+
+  const reduce = window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) {
+    el.textContent = lines[0];
+    return;
+  }
+
+  // natural timing
+  const typeMin = 18;
+  const typeMax = 38;
+  const eraseMin = 12;
+  const eraseMax = 26;
+  const holdMin = 900;
+  const holdMax = 1400;
+  const gapMin = 250;
+  const gapMax = 450;
+
+  const rand = (a, b) => Math.floor(a + Math.random() * (b - a + 1));
+
+  let i = 0;
+
+  while (true) {
+    const full = String(lines[i % lines.length]);
+    el.textContent = "";
+
+    // type
+    for (let c = 0; c < full.length; c++) {
+      el.textContent += full[c];
+      await sleep(rand(typeMin, typeMax));
+    }
+
+    // hold
+    await sleep(rand(holdMin, holdMax));
+
+    // erase
+    for (let c = full.length; c >= 0; c--) {
+      el.textContent = full.slice(0, c);
+      await sleep(rand(eraseMin, eraseMax));
+    }
+
+    await sleep(rand(gapMin, gapMax));
+    i++;
+  }
+}
+
 /* =========================================================
    SMALL UTILS
 ========================================================= */
@@ -852,3 +915,5 @@ window.addEventListener("popstate", applyRoute);
 loadLatest4FromRss().catch(() => {});
 loadSubs().catch(() => {});
 loadTumblrFeed().catch(() => {});
+
+runTypewriter(statusElTop, STATUS_LINES);
