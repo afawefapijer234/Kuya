@@ -640,12 +640,12 @@ function buildTumblrPostElement(p){
   const meta = document.createElement("div");
   meta.className = "tumblrMeta";
 
-  const d = document.createElement("div");
-  d.className = "tumblrPostDate";
-  d.textContent = formatDate(p?.date_gmt || p?.date || "");
-  meta.appendChild(d);
+  const dateEl = document.createElement("div");
+  dateEl.className = "tumblrPostDate";
+  dateEl.textContent = formatDate(p?.date_gmt || p?.date || "");
+  meta.appendChild(dateEl);
 
-  if(postId){
+  if (postId) {
     const shareBtn = document.createElement("button");
     shareBtn.className = "tumblrShareInline";
     shareBtn.type = "button";
@@ -655,7 +655,7 @@ function buildTumblrPostElement(p){
       e.stopPropagation();
       const shareUrl = buildNativeShareUrl(postId, title);
       const ok = await copyToClipboard(shareUrl);
-      if(ok){
+      if (ok) {
         const prev = shareBtn.textContent;
         shareBtn.textContent = "copied";
         setTimeout(() => (shareBtn.textContent = prev), 900);
@@ -663,12 +663,6 @@ function buildTumblrPostElement(p){
     });
     meta.appendChild(shareBtn);
   }
-
-  // date (hover reveal)
-  const d = document.createElement("div");
-  d.className = "tumblrPostDate";
-  d.textContent = formatDate(p?.date_gmt || p?.date || "");
-  meta.appendChild(d);
 
   if(meta.childNodes.length){
     left.appendChild(meta);
