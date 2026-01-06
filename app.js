@@ -616,9 +616,19 @@ function setDocumentTitleForSinglePost(titleText){
 function buildTumblrPostElement(p){
   const postId = String(p?.id || "");
   const inner = buildPostInner(p);
+  let bodyHtml = String(inner.html || "");
+  const h1Match = bodyHtml.match(/^\s*<h1\b[^>]*>([\s\S]*?)<\/h1>\s*/i);
+  let extractedTitle = "";
+  if (h1Match) {
+    const tmp = document.createElement("div");
+    tmp.innerHTML = h1Match[1];
+    extractedTitle = (tmp.textContent || "").trim();
+    bodyHtml = bodyHtml.replace(/^\s*<h1\b[^>]*>[\s\S]*?<\/h1>\s*/i, "");
+    inner.html = bodyHtml;
+  }
 
-  const title = deriveTitle(p, inner);
-
+  const title = extractedTitle || deriveTitle(p, inner);
+   
   const post = document.createElement("article");
   post.className = "tumblrPost";
   post.dataset.postId = postId;
@@ -630,12 +640,13 @@ function buildTumblrPostElement(p){
   const left = document.createElement("div");
   left.className = "tumblrHeadLeft";
 
-  const titleText = deriveTitle(p, inner);
-
+  const titleText = extractedTitle || deriveTitle(p, inner);
+   
   const bodyStartsWithHeading = /^\s*<(h1|h2|h3)\b/i.test(String(inner.html || ""));
 
-  if (!bodyStartsWithHeading && titleText && titleText !== "post") {
-    const t = document.createElement("div");    t.className = "tumblrPostTitle";
+  if (titleText && titleText !== "post" && (!bodyStartsWithHeading || extractedTitle)) {
+    const t = document.createElement("div");
+    t.className = "tumblrPostTitle";
     t.textContent = titleText;
     left.appendChild(t);
   }
