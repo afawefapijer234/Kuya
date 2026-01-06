@@ -631,8 +631,11 @@ function buildTumblrPostElement(p){
   left.className = "tumblrHeadLeft";
 
   const titleText = deriveTitle(p, inner);
-  if(titleText && titleText !== "post"){    const t = document.createElement("div");
-    t.className = "tumblrPostTitle";
+
+  const bodyStartsWithHeading = /^\s*<(h1|h2|h3)\b/i.test(String(inner.html || ""));
+
+  if (!bodyStartsWithHeading && titleText && titleText !== "post") {
+    const t = document.createElement("div");    t.className = "tumblrPostTitle";
     t.textContent = titleText;
     left.appendChild(t);
   }
