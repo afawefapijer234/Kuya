@@ -372,19 +372,6 @@ a:hover{
 @media (max-width: 520px){
   .topbar{ padding-top: 18px; }
   .topbarRight{ min-width: auto; }
-  .tumblrBody img{
-    width: calc(100% + 36px);
-    max-width: none;
-    margin-left: -18px;
-    margin-right: -18px;
-    border-radius: 14px;
-  }
-  .tumblrPhotoGrid{
-    width: calc(100% + 36px);
-    margin-left: -18px;
-    margin-right: -18px;
-    padding: 0 18px;
-  }
 }
 
 .tumblrBody figure.tmblr-full,
@@ -399,20 +386,28 @@ a:hover{
   width: 100%;
 }
 
-/* ====== MOBILE: FULL-BLEED MEDIA (NEGATE WRAP PADDING) ====== */
+/* ====== MOBILE: FULL-BLEED MEDIA ====== */
 @media (max-width: 520px){
   .tumblrBody figure.tmblr-full,
   .tumblrBody figure.tmblr-embed{
-    width: calc(100% + 36px) !important;
-    margin-left: -18px !important;
-    margin-right: -18px !important;
+    width: 100vw !important;
+    margin-left: calc(50% - 50vw) !important;
+    margin-right: calc(50% - 50vw) !important;
   }
 
   .tumblrBody figure.tmblr-full img,
   .tumblrBody figure.tmblr-embed img{
     width: 100%;
-    max-width: 100%;
     height: auto;
     display: block;
+    margin: 0 auto;
+    border-radius: 14px;
+  }
+
+  .tumblrPhotoGrid{
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    padding: 0 18px;
   }
 }
