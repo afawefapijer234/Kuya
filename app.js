@@ -643,8 +643,8 @@ function buildTumblrPostElement(p){
     // left.appendChild(t);
   }
 
-  const right = document.createElement("div");
-  right.className = "tumblrHeadRight";
+  const meta = document.createElement("div");
+  meta.className = "tumblrMeta";
 
   // share inline (top-right)
   if(postId){
@@ -663,21 +663,24 @@ function buildTumblrPostElement(p){
         setTimeout(() => (shareBtn.textContent = prev), 900);
       }
     });
-    right.appendChild(shareBtn);
+    meta.appendChild(shareBtn);
   }
 
   // date (hover reveal)
   const d = document.createElement("div");
   d.className = "tumblrPostDate";
   d.textContent = formatDate(p?.date_gmt || p?.date || "");
-  right.appendChild(d);
+  meta.appendChild(d);
 
+  if(meta.childNodes.length){
+    left.appendChild(meta);
+  }
+   
   // only add head if there is *something* (avoids empty bars)
   const hasHeadLeft = left.childNodes.length > 0 && (left.textContent || "").trim().length > 0;
-  const hasHeadRight = (right.textContent || "").trim().length > 0 || right.querySelector("button");
-  if(hasHeadLeft || hasHeadRight){
+  const hasHeadMeta = meta.childNodes.length > 0;
+  if(hasHeadLeft || hasHeadMeta){
     head.appendChild(left);
-    head.appendChild(right);
     post.appendChild(head);
   }
 
