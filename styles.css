@@ -25,7 +25,6 @@ a:hover{
   text-decoration: none;
 }
 
-/* ====== TOP BAR ====== */
 .topbar{
   max-width: 700px;
   margin: 0 auto;
@@ -132,16 +131,20 @@ a:hover{
   letter-spacing: .01em;
 }
 
-/* ====== PAGE WRAP ====== */
 .wrap{
   max-width: 700px;
   margin: 0 auto;
   padding: 0 18px 60px;
 }
 
-/* ====== FEED HEADER ====== */
 .feed{
   border-top: 1px solid transparent;
+}
+
+.feedKicker{
+  padding: 12px 0 8px;
+  font-size: 13px;
+  color: var(--muted);
 }
 
 .feedHeader{
@@ -167,46 +170,43 @@ a:hover{
 .tumblrFeed{
   display:flex;
   flex-direction:column;
-  gap: 0; /* list look */
+  gap: 0;
 }
 
-/* each post */
 .tumblrPost{
   padding: 16px 0;
-  border-top: 0; /* you wanted no border-top */
+  border-top: 0;
 }
 
 .tumblrPost:first-child{
   padding-top: 6px;
 }
 
-/* header row: title + (share/date) on right */
 .tumblrHead{
   display:flex;
-  align-items:baseline;
-  justify-content:space-between;
-  gap: 16px;
+  flex-direction: column;
+  align-items:flex-start;
+  gap: 6px;
 }
 
 .tumblrHeadLeft{
   min-width: 0;
 }
 
-.tumblrHeadRight{
+.tumblrMeta{
   display:inline-flex;
   align-items:baseline;
   gap: 10px;
   flex: 0 0 auto;
 }
 
-/* title */
 .tumblrPostTitle{
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 400;
   letter-spacing: .01em;
   overflow-wrap: anywhere;
 }
 
-/* share inline (small, underlined, classic link vibe) */
 .tumblrShareInline{
   border: 0;
   background: none;
@@ -223,7 +223,6 @@ a:hover{
 .tumblrPost:hover .tumblrShareInline{ opacity: 1; }
 .tumblrShareInline:hover{ color: rgba(0,0,0,.82); }
 
-/* date hidden until hover (keeps it top-right inline with title) */
 .tumblrPostDate{
   opacity: 0;
   transition: opacity .15s ease;
@@ -237,7 +236,6 @@ a:hover{
   .tumblrShareInline{ opacity: 1; }
 }
 
-/* body: preserve formatting */
 .tumblrBody{
   color: var(--muted);
   margin-top: 10px;
@@ -277,10 +275,9 @@ a:hover{
   height:auto;
   border-radius: 18px;
   margin: 12px 0;
-  cursor: zoom-in; /* click-to-zoom */
+  cursor: zoom-in;
 }
 
-/* if tumblr gives multi-photo, grid it */
 .tumblrPhotoGrid{
   display:grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -304,7 +301,6 @@ a:hover{
   text-underline-offset: 3px;
 }
 
-/* bottom pager (back/forward in time) */
 .tumblrPager{
   display:flex;
   justify-content:space-between;
@@ -329,7 +325,6 @@ a:hover{
   pointer-events: none;
 }
 
-/* ====== LIGHTBOX (IMAGE ZOOM) ====== */
 #imgLightbox{
   position: fixed;
   inset: 0;
@@ -388,11 +383,10 @@ a:hover{
     width: calc(100% + 36px);
     margin-left: -18px;
     margin-right: -18px;
-    padding: 0 18px; /* keeps inner gap between images */
+    padding: 0 18px;
   }
 }
 
-/* ====== KILL TUMBLR FIGURE SIDE MARGINS (THE 40PX) ====== */
 .tumblrBody figure.tmblr-full,
 .tumblrBody figure.tmblr-embed,
 .tumblrBody figure{
@@ -400,7 +394,6 @@ a:hover{
   margin-right: 0 !important;
 }
 
-/* keep media aligned with text column on desktop */
 .tumblrBody figure.tmblr-full,
 .tumblrBody figure.tmblr-embed{
   width: 100%;
@@ -415,7 +408,6 @@ a:hover{
     margin-right: -18px !important;
   }
 
-  /* make sure the actual image fills the figure */
   .tumblrBody figure.tmblr-full img,
   .tumblrBody figure.tmblr-embed img{
     width: 100%;
