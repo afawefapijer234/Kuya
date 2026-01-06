@@ -630,23 +630,21 @@ function buildTumblrPostElement(p){
   const left = document.createElement("div");
   left.className = "tumblrHeadLeft";
 
-  if(inner.title){
-    const t = document.createElement("div");
+  const titleText = deriveTitle(p, inner);
+  if(titleText && titleText !== "post"){    const t = document.createElement("div");
     t.className = "tumblrPostTitle";
-    t.textContent = inner.title;
+    t.textContent = titleText;
     left.appendChild(t);
-  }else{
-    // no explicit title, but keep layout stable if you want: comment this out if you want truly blank head-left
-    // const t = document.createElement("div");
-    // t.className = "tumblrPostTitle";
-    // t.textContent = "";
-    // left.appendChild(t);
   }
 
   const meta = document.createElement("div");
   meta.className = "tumblrMeta";
 
-  // share inline (top-right)
+  const d = document.createElement("div");
+  d.className = "tumblrPostDate";
+  d.textContent = formatDate(p?.date_gmt || p?.date || "");
+  meta.appendChild(d);
+
   if(postId){
     const shareBtn = document.createElement("button");
     shareBtn.className = "tumblrShareInline";
@@ -676,7 +674,6 @@ function buildTumblrPostElement(p){
     left.appendChild(meta);
   }
    
-  // only add head if there is *something* (avoids empty bars)
   const hasHeadLeft = left.childNodes.length > 0 && (left.textContent || "").trim().length > 0;
   const hasHeadMeta = meta.childNodes.length > 0;
   if(hasHeadLeft || hasHeadMeta){
