@@ -12,6 +12,10 @@ const YT_CHANNEL_FALLBACK_URL = "https://www.youtube.com/@houseoftakuya";
 const TUMBLR_BLOG = "takuyakitano";
 const TUMBLR_PAGE_SIZE = 10;
 
+// Goodreads
+// I pulled this ID (60019791) from your widget script in index.html
+const GOODREADS_PROFILE_URL = "https://www.goodreads.com/user/show/60019791"; 
+
 /* =========================================================
    DOM HOOKS
 ========================================================= */
@@ -142,7 +146,7 @@ async function copyToClipboard(text){
   }
 }
 
-// --- NEW TITLE EXTRACTION HELPER ---
+// --- TITLE EXTRACTION HELPER ---
 function extractTitleFromBody(html) {
   if (!html) return { title: null, body: html };
 
@@ -150,7 +154,6 @@ function extractTitleFromBody(html) {
   temp.innerHTML = html;
 
   const firstEl = temp.firstElementChild;
-  // Look specifically for a <p> tag as the first element
   if (!firstEl || firstEl.tagName !== "P") {
     return { title: null, body: html };
   }
@@ -168,7 +171,7 @@ function extractTitleFromBody(html) {
     return { title: null, body: html };
   }
 
-  // Accept as title and remove from body so it doesn't repeat
+  // Accept as title
   firstEl.remove();
 
   return {
@@ -192,7 +195,6 @@ async function runTypewriter(el, items) {
 
   while (true) {
     for (const item of items) {
-      // set the lead word ("says:" only for the first one, "is" for the rest)
       if (leadEl) {
         leadEl.textContent = item.mode === "says" ? "says:" : "is";
       }
@@ -652,7 +654,6 @@ function buildTumblrPostElement(p){
   const postId = String(p?.id || "");
   const inner = buildPostInner(p);
   
-  // --- UPDATED TITLE LOGIC ---
   // Priority: 1. Real Title, 2. Inferred from Body, 3. Null
   let title = inner.title || null;
   let body = inner.html || "";
@@ -662,7 +663,6 @@ function buildTumblrPostElement(p){
     title = inferred.title;
     body = inferred.body;
   }
-  // ---------------------------
   
   const post = document.createElement("article");
   post.className = "tumblrPost";
@@ -675,7 +675,6 @@ function buildTumblrPostElement(p){
   const left = document.createElement("div");
   left.className = "tumblrHeadLeft";
 
-  // RENDER TITLE ONLY IF IT EXISTS
   if (title) {
     const t = document.createElement("div");
     t.className = "tumblrPostTitle";
@@ -699,7 +698,6 @@ function buildTumblrPostElement(p){
     shareBtn.addEventListener("click", async (e) => {
       e.preventDefault();
       e.stopPropagation();
-      // Use the final resolved title for the URL hash as well
       const shareUrl = buildNativeShareUrl(postId, title || deriveTitle(p, inner));
       const ok = await copyToClipboard(shareUrl);
       if (ok) {
@@ -731,7 +729,7 @@ function buildTumblrPostElement(p){
   const hasBody = (bodyEl.textContent || "").trim().length > 0 || bodyEl.querySelector("img, video, audio, iframe");
   if(hasBody) post.appendChild(bodyEl);
 
-  // SIGNOFF centered (bottom) linking to Tumblr
+  // SIGNOFF
   const tumblrUrl = p?.url_with_slug || p?.url || "";
   if(tumblrUrl){
     const signoff = document.createElement("div");
@@ -753,7 +751,7 @@ function renderTumblrPager(){
   if(!tumblrFeed) return;
 
   tumblrFeed.querySelectorAll(".tumblrPager").forEach(n => n.remove());
-  if(getActivePostId()) return; // no pager on single post view
+  if(getActivePostId()) return;
 
   const canForward = tumblrStart > 0;
   const canBack = (tumblrTotal == null) ? true : (tumblrStart + TUMBLR_PAGE_SIZE < tumblrTotal);
@@ -850,9 +848,37 @@ async function loadTumblrFeed(){
 }
 
 function onRouteChange(){
-  // whenever hash changes, reload feed (single post or list)
   tumblrStart = 0;
   loadTumblrFeed().catch(() => {});
+}
+
+/* =========================================================
+   GOODREADS WIDGET LINK HIJACKER
+========================================================= */
+
+function hijackGoodreadsLinks() {
+  const widget = document.querySelector(".goodreadsWidget");
+  if (!widget) return;
+
+  // The widget loads via external script, so we must poll for the elements
+  let attempts = 0;
+  const interval = setInterval(() => {
+    const links = widget.querySelectorAll("a");
+    
+    if (links.length > 0) {
+      // Found the links! Replace their hrefs
+      links.forEach(a => {
+        a.href = GOODREADS_PROFILE_URL;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+      });
+      clearInterval(interval);
+    }
+
+    // Stop trying after 4 seconds (40 attempts)
+    attempts++;
+    if (attempts > 40) clearInterval(interval);
+  }, 100);
 }
 
 /* =========================================================
@@ -875,19 +901,20 @@ function init(){
   // keep bpm reactive but not insane
   window.addEventListener("scroll", () => tickBpm(), { passive: true });
 
-  // routing (fixes “paste link then nothing happens”)
+  // routing
   window.addEventListener("hashchange", onRouteChange);
   window.addEventListener("popstate", onRouteChange);
 
-  // initial route render
   onRouteChange();
 
-  // optional youtube
   loadLatest4FromRss().catch(() => {});
   loadSubs().catch(() => {});
 
   // status typewriter
   runTypewriter(statusElTop, STATUS_ITEMS).catch(() => {});
+
+  // NEW: Fix the Goodreads links after the widget loads
+  hijackGoodreadsLinks();
 }
 
 if(document.readyState === "loading"){
