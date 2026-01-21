@@ -142,6 +142,41 @@ async function copyToClipboard(text){
   }
 }
 
+// --- NEW TITLE EXTRACTION HELPER ---
+function extractTitleFromBody(html) {
+  if (!html) return { title: null, body: html };
+
+  const temp = document.createElement("div");
+  temp.innerHTML = html;
+
+  const firstEl = temp.firstElementChild;
+  // Look specifically for a <p> tag as the first element
+  if (!firstEl || firstEl.tagName !== "P") {
+    return { title: null, body: html };
+  }
+
+  const text = firstEl.textContent.trim();
+  if (!text) return { title: null, body: html };
+
+  // Heuristics to reject bad titles
+  const tooLong = text.length > 80;
+  const hasLineBreaks = /\n/.test(text);
+  const looksLikeList = /^[-•*]\s/.test(text);
+  const tooManyDashes = (text.match(/\s-\s/g) || []).length >= 2;
+
+  if (tooLong || hasLineBreaks || looksLikeList || tooManyDashes) {
+    return { title: null, body: html };
+  }
+
+  // Accept as title and remove from body so it doesn't repeat
+  firstEl.remove();
+
+  return {
+    title: text,
+    body: temp.innerHTML.trim()
+  };
+}
+
 /* =========================================================
    TYPEWRITER (with micro-pauses)
 ========================================================= */
@@ -166,7 +201,7 @@ async function runTypewriter(el, items) {
 
       el.textContent = "";
       const thinkPause = () => (Math.random() < 0.12 ? 180 + Math.random() * 320 : 0);
-       
+      
       for (let i = 0; i < full.length; i++) {
         el.textContent += full[i];
         const ch = full[i];
@@ -181,7 +216,7 @@ async function runTypewriter(el, items) {
       }
 
       await sleep(900 + Math.random() * 900);
-       
+      
       while (el.textContent.length) {
         el.textContent = el.textContent.slice(0, -1);
         const base = 20 + Math.random() * 45;
@@ -616,19 +651,19 @@ function setDocumentTitleForSinglePost(titleText){
 function buildTumblrPostElement(p){
   const postId = String(p?.id || "");
   const inner = buildPostInner(p);
-  let bodyHtml = String(inner.html || "");
-  const h1Match = bodyHtml.match(/^\s*<h1\b[^>]*>([\s\S]*?)<\/h1>\s*/i);
-  let extractedTitle = "";
-  if (h1Match) {
-    const tmp = document.createElement("div");
-    tmp.innerHTML = h1Match[1];
-    extractedTitle = (tmp.textContent || "").trim();
-    bodyHtml = bodyHtml.replace(/^\s*<h1\b[^>]*>[\s\S]*?<\/h1>\s*/i, "");
-    inner.html = bodyHtml;
-  }
+  
+  // --- UPDATED TITLE LOGIC ---
+  // Priority: 1. Real Title, 2. Inferred from Body, 3. Null
+  let title = inner.title || null;
+  let body = inner.html || "";
 
-  const title = extractedTitle || deriveTitle(p, inner);
-   
+  if (!title) {
+    const inferred = extractTitleFromBody(body);
+    title = inferred.title;
+    body = inferred.body;
+  }
+  // ---------------------------
+  
   const post = document.createElement("article");
   post.className = "tumblrPost";
   post.dataset.postId = postId;
@@ -640,14 +675,11 @@ function buildTumblrPostElement(p){
   const left = document.createElement("div");
   left.className = "tumblrHeadLeft";
 
-  const titleText = extractedTitle || deriveTitle(p, inner);
-   
-  const bodyStartsWithHeading = /^\s*<(h1|h2|h3)\b/i.test(String(inner.html || ""));
-
-  if (titleText && titleText !== "post" && (!bodyStartsWithHeading || extractedTitle)) {
+  // RENDER TITLE ONLY IF IT EXISTS
+  if (title) {
     const t = document.createElement("div");
     t.className = "tumblrPostTitle";
-    t.textContent = titleText;
+    t.textContent = title;
     left.appendChild(t);
   }
 
@@ -667,7 +699,8 @@ function buildTumblrPostElement(p){
     shareBtn.addEventListener("click", async (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const shareUrl = buildNativeShareUrl(postId, title);
+      // Use the final resolved title for the URL hash as well
+      const shareUrl = buildNativeShareUrl(postId, title || deriveTitle(p, inner));
       const ok = await copyToClipboard(shareUrl);
       if (ok) {
         const prev = shareBtn.textContent;
@@ -681,7 +714,7 @@ function buildTumblrPostElement(p){
   if(meta.childNodes.length){
     left.appendChild(meta);
   }
-   
+  
   const hasHeadLeft = left.childNodes.length > 0 && (left.textContent || "").trim().length > 0;
   const hasHeadMeta = meta.childNodes.length > 0;
   if(hasHeadLeft || hasHeadMeta){
@@ -690,13 +723,13 @@ function buildTumblrPostElement(p){
   }
 
   // BODY
-  const body = document.createElement("div");
-  body.className = "tumblrBody";
-  body.innerHTML = inner.html || "";
-  bindZoomableImages(body);
+  const bodyEl = document.createElement("div");
+  bodyEl.className = "tumblrBody";
+  bodyEl.innerHTML = body || "";
+  bindZoomableImages(bodyEl);
 
-  const hasBody = (body.textContent || "").trim().length > 0 || body.querySelector("img, video, audio, iframe");
-  if(hasBody) post.appendChild(body);
+  const hasBody = (bodyEl.textContent || "").trim().length > 0 || bodyEl.querySelector("img, video, audio, iframe");
+  if(hasBody) post.appendChild(bodyEl);
 
   // SIGNOFF centered (bottom) linking to Tumblr
   const tumblrUrl = p?.url_with_slug || p?.url || "";
