@@ -245,6 +245,14 @@ a:hover{
   overflow-wrap: anywhere;
 }
 
+.tumblrBody h1,
+.tumblrBody h2,
+.tumblrBody h3 {
+  font-weight: 400;
+  font-size: 13px;
+  margin: 0 0 10px;
+}
+
 .tumblrBody b,
 .tumblrBody strong{ font-weight: 700; color: inherit; }
 
