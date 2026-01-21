@@ -14,7 +14,7 @@ const TUMBLR_PAGE_SIZE = 10;
 
 // Goodreads
 // I pulled this ID (60019791) from your widget script in index.html
-const GOODREADS_PROFILE_URL = "https://www.goodreads.com/user/show/60019791"; 
+const GOODREADS_PROFILE_URL = "https://www.goodreads.com/takuyakitano"; 
 
 /* =========================================================
    DOM HOOKS
