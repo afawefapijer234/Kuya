@@ -79,12 +79,14 @@ a:hover{
 
 .brandLabel{
   font-size: 13px;
-  color: rgba(0,0,0,.42);
+  /* UPDATED: Matches the --muted variable so "is" looks like the rest */
+  color: var(--muted);
 }
 
 .statusMsg{
   font-size: 13px;
-  color: rgba(0,0,0,.70);
+  /* UPDATED: Matches --muted variable instead of the darker .70 opacity */
+  color: var(--muted);
   position: relative;
   white-space: nowrap;
 }
