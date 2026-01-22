@@ -66,6 +66,10 @@ a:hover, button:hover {
   color: var(--muted); 
 }
 
+.brandRow {
+  flex-wrap: wrap; /* Allows wrapping on tiny screens without forcing a break */
+}
+
 .brandLabel, .statusMsg, .feedKicker, .feedSource, .email, .inlineSocials, .catLabel, .catBtn {
   color: var(--muted);
 }
@@ -124,8 +128,25 @@ a:hover, button:hover {
 .tumblrBody h1, .tumblrBody h2, .tumblrBody h3 { font-weight: 400; font-size: 13px; margin: 0 0 10px; }
 .tumblrBody p { margin: 0 0 10px; }
 .tumblrBody blockquote { margin: 10px 0; padding-left: 12px; border-left: 2px solid rgba(0,0,0,.12); opacity: .9; }
-.tumblrBody img { display: block; width: 100%; height: auto; border-radius: 18px; margin: 12px 0; cursor: zoom-in; }
 .tumblrBody a { text-decoration: underline; text-underline-offset: 3px; }
+
+/* --- GLOBAL IMAGE FIX --- */
+/* Forces images to fit width and removes Tumblr indentation on PC & Mobile */
+.tumblrBody figure.tmblr-full,
+.tumblrBody figure.tmblr-embed {
+  width: 100% !important;
+  margin: 12px 0 !important;
+}
+
+.tumblrBody figure img, 
+.tumblrBody img { 
+  display: block; 
+  width: 100%; 
+  height: auto; 
+  border-radius: 14px; 
+  margin: 12px 0; 
+  cursor: zoom-in; 
+}
 
 .tumblrPhotoGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 12px 0; }
 
@@ -170,20 +191,6 @@ a:hover, button:hover {
   }
 
   .topbarRight { min-width: auto; }
-  .brandRow, .inlineSocials { display: block; }
-  .inlineSocials { margin-left: 0; margin-top: 4px; }
+    
   .categoryNav { gap: 14px; margin-top: 8px; }
-
-  .tumblrBody figure.tmblr-full, 
-  .tumblrBody figure.tmblr-embed {
-    width: 100% !important;
-    margin: 12px 0 !important;
-  }
-
-  .tumblrBody figure img {
-    width: 100%;
-    height: auto;
-    border-radius: 14px;
-  }
-}                 
 }
