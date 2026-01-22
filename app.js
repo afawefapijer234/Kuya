@@ -13,7 +13,6 @@ const TUMBLR_BLOG = "takuyakitano";
 const TUMBLR_PAGE_SIZE = 10;
 
 // Goodreads
-// I pulled this ID (60019791) from your widget script in index.html
 const GOODREADS_PROFILE_URL = "https://www.goodreads.com/takuyakitano"; 
 
 /* =========================================================
@@ -537,6 +536,7 @@ async function loadSubs(){
 let tumblrStart = 0;
 let tumblrTotal = null;
 let tumblrLoading = false;
+let currentTag = ""; // Stores selected filter tag
 
 function getActivePostId(){
   const qs = new URLSearchParams(location.search);
@@ -545,10 +545,16 @@ function getActivePostId(){
   return postFromQuery || postFromHash;
 }
 
-function tumblrJsonUrl({ start, num, id }){
+function tumblrJsonUrl({ start, num, id, tag }){
   const base = `https://${TUMBLR_BLOG}.tumblr.com/api/read/json`;
+  
+  // Single post ID
   if(id) return `${base}?id=${encodeURIComponent(id)}`;
-  return `${base}?num=${encodeURIComponent(num)}&start=${encodeURIComponent(start)}`;
+
+  // Feed with optional tag filter
+  let url = `${base}?num=${encodeURIComponent(num)}&start=${encodeURIComponent(start)}`;
+  if(tag) url += `&tagged=${encodeURIComponent(tag)}`;
+  return url;
 }
 
 function parseTumblrJsonp(text){
@@ -806,12 +812,13 @@ async function loadTumblrFeed(){
   const activePostId = getActivePostId();
 
   try{
-    tumblrFeed.textContent = "Loading…";
+    if(tumblrStart === 0) tumblrFeed.textContent = "Loading…";
 
     const url = tumblrJsonUrl({
       start: tumblrStart,
       num: TUMBLR_PAGE_SIZE,
       id: activePostId || null,
+      tag: currentTag // Pass the current tag
     });
 
     const raw = await fetchRaw(url);
@@ -820,10 +827,12 @@ async function loadTumblrFeed(){
     tumblrTotal = Number.isFinite(Number(data?.posts_total)) ? Number(data.posts_total) : tumblrTotal;
 
     const posts = Array.isArray(data?.posts) ? data.posts : [];
-    tumblrFeed.innerHTML = "";
+    
+    // Clear feed only on first page load
+    if(tumblrStart === 0) tumblrFeed.innerHTML = "";
 
     if(!posts.length){
-      tumblrFeed.textContent = "No posts yet.";
+      if(tumblrStart === 0) tumblrFeed.textContent = "No posts found in this collection.";
       return;
     }
 
@@ -840,7 +849,8 @@ async function loadTumblrFeed(){
     posts.forEach(p => tumblrFeed.appendChild(buildTumblrPostElement(p)));
     renderTumblrPager();
   }catch(e){
-    tumblrFeed.textContent = "Unable to load Tumblr feed.";
+    console.error(e);
+    tumblrFeed.textContent = "Unable to load feed.";
   }finally{
     tumblrLoading = false;
     renderTumblrPager();
@@ -850,6 +860,74 @@ async function loadTumblrFeed(){
 function onRouteChange(){
   tumblrStart = 0;
   loadTumblrFeed().catch(() => {});
+}
+
+/* =========================================================
+   CATEGORY NAV & RANDOM LOGIC
+========================================================= */
+
+function setupCategoryNav(){
+  const buttons = document.querySelectorAll(".catBtn");
+  
+  buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      
+      // Special Case: Random Button
+      if(btn.id === "randomBtn"){
+         fetchRandomPost();
+         return;
+      }
+
+      // 1. VISUAL: Switch the Red Color
+      buttons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      // 2. LOGIC: Set the tag
+      // If data-tag is empty (the "All" button), it clears the filter
+      currentTag = btn.dataset.tag || "";
+      
+      // 3. RESET: Go back to page 1
+      tumblrStart = 0;
+      tumblrTotal = null;
+      
+      // 4. CLEANUP: Remove any #hashtags from the URL so it looks clean
+      history.pushState("", document.title, window.location.pathname + window.location.search);
+
+      // 5. FETCH: Get the new posts
+      loadTumblrFeed();
+    });
+  });
+}
+
+async function fetchRandomPost(){
+  if(tumblrLoading) return;
+  tumblrFeed.textContent = "Rolling the dice...";
+  
+  // 1. Get total post count first
+  const url = tumblrJsonUrl({ start:0, num:1 });
+  try {
+    const raw = await fetchRaw(url);
+    const data = parseTumblrJsonp(raw);
+    const total = Number(data.posts_total);
+    
+    if(!total) return;
+
+    // 2. Pick a random index
+    const randomStart = Math.floor(Math.random() * total);
+    
+    // 3. Fetch that specific post
+    const randUrl = tumblrJsonUrl({ start: randomStart, num: 1 });
+    const randRaw = await fetchRaw(randUrl);
+    const randData = parseTumblrJsonp(randRaw);
+    const post = randData.posts[0];
+    
+    if(post){
+      // 4. Force the view to that post
+      window.location.hash = prettyHashForPost(post.id, post["regular-title"] || "random");
+    }
+  } catch(e) {
+    tumblrFeed.textContent = "Failed to find a random memory.";
+  }
 }
 
 /* =========================================================
@@ -915,6 +993,9 @@ function init(){
 
   // NEW: Fix the Goodreads links after the widget loads
   hijackGoodreadsLinks();
+
+  // NEW: Turn on the Category Nav
+  setupCategoryNav();
 }
 
 if(document.readyState === "loading"){
