@@ -302,12 +302,13 @@ function getDailyTargetParams(){
     target = slTarget + t * (dayTarget - slTarget);
   }
 
-  let tau = 18;
-  let maxStep = 2.4;
+  // --- CHANGED SETTINGS HERE ---
+  let tau = 5;       // Was 18 (Made it too slow)
+  let maxStep = 4.0; // Was 2.4 (Allows bigger jumps)
 
-  if(inSleep){ tau = 42; maxStep = 1.1; }
-  if(inDay){ tau = 18; maxStep = 2.2; }
-  if(inWorkout){ tau = 8; maxStep = 6.0; }
+  if(inSleep){ tau = 42; maxStep = 1.1; } // Sleep stays slow/calm
+  if(inDay){ tau = 4; maxStep = 5.0; }    // Day is now much more reactive
+  if(inWorkout){ tau = 2; maxStep = 10.0; } // Workout is erratic
 
   return { target, tau, maxStep, inWorkout, inDay, inSleep };
 }
@@ -316,16 +317,20 @@ function tickBpm(){
   if(!bpmEl) return;
 
   const nowT = performance.now();
+  // Ensure we don't have a huge time jump if tab was backgrounded
   const dt = Math.min(0.2, Math.max(0.02, (nowT - lastTick) / 1000));
   lastTick = nowT;
 
-  drift += (Math.random() - 0.5) * 0.12;
+  // Increase drift speed
+  drift += (Math.random() - 0.5) * 0.5; // Was 0.12 (Too subtle)
   drift = Math.max(-6, Math.min(6, drift));
 
   const { target, tau, maxStep, inWorkout, inDay } = getDailyTargetParams();
 
   const scrollBoost = Math.min(6, window.scrollY / 180);
-  const micro = (Math.random() - 0.5) * (inWorkout ? 4.0 : inDay ? 2.0 : 1.0);
+  
+  // Increase micro-jitters
+  const micro = (Math.random() - 0.5) * (inWorkout ? 6.0 : inDay ? 4.0 : 1.0);
 
   const desired = target + drift + scrollBoost + micro;
 
