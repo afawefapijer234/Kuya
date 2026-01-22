@@ -154,11 +154,14 @@ a:hover, button:hover {
 .goodreadsWidget .gr_grid_book_container { display: inline-block !important; width: 39px !important; height: 60px !important; margin: 0 10px 10px 0 !important; padding: 0 !important; float: none !important; }
 .goodreadsWidget .gr_grid_book_container img { width: 39px !important; height: 60px !important; object-fit: cover; border-radius: 6px; display: block; }
 
-@media (max-width: 520px){
+/* --- MOBILE --- */
+@media (max-width: 640px){ 
+  .tumblrPhotoGrid { grid-template-columns: 1fr; } 
+}
+
+@media (max-width: 520px){ 
   .topbar { 
-    padding-left: 10px; 
-    padding-right: 10px; 
-    padding-top: 18px;
+    padding: 18px 10px 0;
   }
   
   .wrap {
@@ -170,6 +173,17 @@ a:hover, button:hover {
   .brandRow, .inlineSocials { display: block; }
   .inlineSocials { margin-left: 0; margin-top: 4px; }
   .categoryNav { gap: 14px; margin-top: 8px; }
-}
-                    
+
+  .tumblrBody figure.tmblr-full, 
+  .tumblrBody figure.tmblr-embed {
+    width: 100% !important;
+    margin: 12px 0 !important;
+  }
+
+  .tumblrBody figure img {
+    width: 100%;
+    height: auto;
+    border-radius: 14px;
+  }
+}                 
 }
