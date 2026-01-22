@@ -536,7 +536,7 @@ async function loadSubs(){
 let tumblrStart = 0;
 let tumblrTotal = null;
 let tumblrLoading = false;
-let currentTag = ""; // Stores selected filter tag
+let currentTag = ""; 
 
 function getActivePostId(){
   const qs = new URLSearchParams(location.search);
@@ -548,10 +548,8 @@ function getActivePostId(){
 function tumblrJsonUrl({ start, num, id, tag }){
   const base = `https://${TUMBLR_BLOG}.tumblr.com/api/read/json`;
   
-  // Single post ID
   if(id) return `${base}?id=${encodeURIComponent(id)}`;
 
-  // Feed with optional tag filter
   let url = `${base}?num=${encodeURIComponent(num)}&start=${encodeURIComponent(start)}`;
   if(tag) url += `&tagged=${encodeURIComponent(tag)}`;
   return url;
@@ -645,7 +643,6 @@ function buildPostInner(post){
 }
 
 function buildNativeShareUrl(postId, title){
-  // keep hash routing; it works on GH Pages without server config
   const base = getSiteBaseUrl();
   return `${base}${prettyHashForPost(postId, title)}`;
 }
@@ -971,7 +968,7 @@ function init(){
   tickBpm();
 
   setInterval(updateClock, 1000 * 10);
-  setInterval(tickBpm, 850);
+  setInterval(tickBpm, 250);
 
   window.addEventListener("online", updateOnline);
   window.addEventListener("offline", updateOnline);
