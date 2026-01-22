@@ -10,19 +10,35 @@
 </head>
 
 <body>
-  <header class="topbar">
+<header class="topbar">
     <div class="topbarLeft">
-    <div class="brandRow">
-      <a class="brandName" href="./">takuya</a>
-      <span id="statusLead" class="brandLabel"></span>
-      <span id="statusMsg" class="statusMsg" aria-live="polite"></span>
-    </div>
-      <nav class="links" aria-label="Links">
-        <a href="https://www.youtube.com/@TAKUYA" target="_blank" rel="noreferrer">youtube</a>
-        <a href="https://instagram.com/" target="_blank" rel="noreferrer">instagram</a>
-        <a href="https://discord.com" target="_blank" rel="noreferrer">discord</a>
-        <a href="https://tiktok.com/@kuya5k" target="_blank" rel="noreferrer">tiktok</a>
+      
+      <div class="brandRow">
+        <a class="brandName" href="./">takuya</a>
+        
+        <nav class="inlineSocials">
+          <span class="divider">/</span>
+          <a href="https://www.youtube.com/@TAKUYA" target="_blank">yt</a>
+          <a href="https://instagram.com/" target="_blank">ig</a>
+          <a href="https://discord.com" target="_blank">disc</a>
+          <a href="https://tiktok.com/@kuya5k" target="_blank">tok</a>
+        </nav>
+      </div>
+
+      <div class="statusRow">
+        <span id="statusLead" class="brandLabel">is</span>
+        <span id="statusMsg" class="statusMsg" aria-live="polite">loading...</span>
+      </div>
+
+      <nav class="categoryNav">
+        <span class="catLabel">index:</span>
+        <button class="catBtn active" data-tag="">all</button>
+        <button class="catBtn" data-tag="poly">poly</button>
+        <button class="catBtn" data-tag="design">design</button>
+        <button class="catBtn" data-tag="inspo">inspo</button>
+        <button class="catBtn" id="randomBtn" title="read a random memory">random 🎲</button>
       </nav>
+
     </div>
 
     <div class="topbarRight">
