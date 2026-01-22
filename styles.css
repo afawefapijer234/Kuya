@@ -11,7 +11,11 @@ html,body{ height:100%; }
 
 body{
   margin:0;
-  background: var(--bg);
+  background: linear-gradient(to bottom, #fbfaf7, #faf9f3 60%, #eae9e4 100%);
+  background-attachment: fixed;
+  background-size: cover;
+  background-repeat: no-repeat;
+  min-height: 100vh;
   color: var(--text);
   font: 13px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
 }
