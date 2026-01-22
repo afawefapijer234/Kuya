@@ -125,7 +125,7 @@ a:hover, button:hover {
 .tumblrShareInline { text-decoration: underline; text-underline-offset: 3px; }
 
 .tumblrBody { color: var(--muted); margin-top: 10px; line-height: 1.6; overflow-wrap: anywhere; }
-.tumblrBody h1, .tumblrBody h2, .tumblrBody h3 { font-weight: 400; font-size: 13px; margin: 0 0 10px; }
+.tumblrBody h1, .tumblrBody h2, .tumblrBody h3 { font-weight: 600; font-size: 13px; margin: 0 0 10px; }
 .tumblrBody p { margin: 0 0 10px; }
 .tumblrBody blockquote { margin: 10px 0; padding-left: 12px; border-left: 2px solid rgba(0,0,0,.12); opacity: .9; }
 .tumblrBody a { text-decoration: underline; text-underline-offset: 3px; }
