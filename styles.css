@@ -11,6 +11,7 @@ html,body{ height:100%; }
 
 body{
   margin:0;
+  /* Your Fixed Gradient Background */
   background: linear-gradient(to bottom, #fbfaf7, #faf9f3 60%, #eae9e4 100%);
   background-attachment: fixed;
   background-size: cover;
@@ -18,6 +19,37 @@ body{
   min-height: 100vh;
   color: var(--text);
   font: 13px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+}
+
+/* --- PROGRESSIVE BLUR BORDER --- */
+.blurBorder {
+  position: fixed;
+  inset: 0; 
+  width: 100%;
+  height: 100vh;
+  z-index: 50; 
+  pointer-events: none; /* Allows clicking through the blur */
+  
+  /* The Blur Effect */
+  backdrop-filter: blur(6px); /* Increase to 12px for stronger fog */
+  -webkit-backdrop-filter: blur(6px);
+  
+  /* The Mask: Controls WHERE the blur is applied */
+  /* Black = Blur Visible | Transparent = Blur Invisible */
+  mask-image: linear-gradient(
+    to bottom, 
+    black 0%, 
+    transparent 120px, 
+    transparent calc(100% - 120px), 
+    black 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom, 
+    black 0%, 
+    transparent 120px, 
+    transparent calc(100% - 120px), 
+    black 100%
+  );
 }
 
 /* --- SHARED DEFAULTS --- */
@@ -46,6 +78,8 @@ a:hover, button:hover {
   align-items:flex-start;
   justify-content:space-between;
   gap: 18px;
+  /* Optional: Add 'position: relative; z-index: 51;' here if you want 
+     the header to sit ON TOP of the blur instead of under it. */
 }
 
 .topbarLeft{ display: grid; gap: 6px; }
@@ -71,7 +105,7 @@ a:hover, button:hover {
 }
 
 .brandRow {
-  flex-wrap: wrap; /* Allows wrapping on tiny screens without forcing a break */
+  flex-wrap: wrap; 
 }
 
 .brandLabel, .statusMsg, .feedKicker, .feedSource, .email, .inlineSocials, .catLabel, .catBtn {
