@@ -196,36 +196,66 @@ a:hover, button:hover {
 .goodreadsWidget .gr_grid_book_container { display: inline-block !important; width: 39px !important; height: 60px !important; margin: 0 10px 10px 0 !important; padding: 0 !important; float: none !important; }
 .goodreadsWidget .gr_grid_book_container img { width: 39px !important; height: 60px !important; object-fit: cover; border-radius: 6px; display: block; }
 
+/* --- THOUGHTS GRID (Are.na Style Squares) --- */
 .tumblrFeed.grid-mode {
-  display: block; 
-  column-count: 3;
-  column-gap: 16px;
+  display: grid; 
+  grid-template-columns: repeat(3, 1fr); /* Forces exactly 3 columns */
+  gap: 16px;
 }
 
 .tumblrFeed.grid-mode .tumblrPost {
-  break-inside: avoid-column; 
-  page-break-inside: avoid;
-  margin-bottom: 16px;
+  aspect-ratio: 1 / 1; /* FORCES PERFECT SQUARES */
+  margin-bottom: 0; /* Reset from normal feed */
   padding: 16px;
   background: #fff; 
   border: 1px solid var(--line);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0,0,0,.02); 
+  overflow: hidden; /* Hides text that overflows the square */
+  position: relative;
+  cursor: pointer; /* Makes it look clickable */
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
 }
 
+.tumblrFeed.grid-mode .tumblrPost:hover {
+  border-color: var(--muted);
+  box-shadow: 0 6px 16px rgba(0,0,0,.06);
+  transform: translateY(-2px); /* Slight lift on hover */
+}
+
+/* Reset the extra padding applied to normal feed's first child */
 .tumblrFeed.grid-mode .tumblrPost:first-child {
   padding-top: 16px;
 }
 
+/* Fade out the bottom of the square so text doesn't end harshly */
+.tumblrFeed.grid-mode .tumblrPost::after {
+  content: "";
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 48px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1) 90%);
+  pointer-events: none; /* Allows clicking through the fade */
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+/* Hide clutter (dates, share buttons, signoffs) in grid mode to stay minimal */
+.tumblrFeed.grid-mode .tumblrMeta,
+.tumblrFeed.grid-mode .tumblrSignoff {
+  display: none;
+}
+
 .tumblrFeed.grid-mode .tumblrPager {
-  column-span: all;
+  grid-column: 1 / -1; /* Pager spans all the way across */
   display: flex; 
   margin-top: 16px;
 }
 
+/* --- MOBILE --- */
 @media (max-width: 640px){ 
   .tumblrPhotoGrid { grid-template-columns: 1fr; } 
-  .tumblrFeed.grid-mode { column-count: 2; }
+  .tumblrFeed.grid-mode { grid-template-columns: repeat(2, 1fr); } /* 2 squares on small screens */
 }
 
 @media (max-width: 520px){ 
@@ -241,5 +271,5 @@ a:hover, button:hover {
   .topbarRight { min-width: auto; }
   .categoryNav { gap: 14px; margin-top: 8px; }
   
-  .tumblrFeed.grid-mode { column-count: 1; }
+  .tumblrFeed.grid-mode { grid-template-columns: repeat(2, 1fr); } /* Keep it 2 squares on phones */
 }
