@@ -302,13 +302,12 @@ function getDailyTargetParams(){
     target = slTarget + t * (dayTarget - slTarget);
   }
 
-  // --- CHANGED SETTINGS HERE ---
-  let tau = 5;       // Was 18 (Made it too slow)
-  let maxStep = 4.0; // Was 2.4 (Allows bigger jumps)
+  let tau = 5;       
+  let maxStep = 4.0; 
 
-  if(inSleep){ tau = 42; maxStep = 1.1; } // Sleep stays slow/calm
-  if(inDay){ tau = 4; maxStep = 5.0; }    // Day is now much more reactive
-  if(inWorkout){ tau = 2; maxStep = 10.0; } // Workout is erratic
+  if(inSleep){ tau = 42; maxStep = 1.1; } 
+  if(inDay){ tau = 4; maxStep = 5.0; }    
+  if(inWorkout){ tau = 2; maxStep = 10.0; } 
 
   return { target, tau, maxStep, inWorkout, inDay, inSleep };
 }
@@ -317,19 +316,16 @@ function tickBpm(){
   if(!bpmEl) return;
 
   const nowT = performance.now();
-  // Ensure we don't have a huge time jump if tab was backgrounded
   const dt = Math.min(0.2, Math.max(0.02, (nowT - lastTick) / 1000));
   lastTick = nowT;
 
-  // Increase drift speed
-  drift += (Math.random() - 0.5) * 0.5; // Was 0.12 (Too subtle)
+  drift += (Math.random() - 0.5) * 0.5; 
   drift = Math.max(-6, Math.min(6, drift));
 
   const { target, tau, maxStep, inWorkout, inDay } = getDailyTargetParams();
 
   const scrollBoost = Math.min(6, window.scrollY / 180);
   
-  // Increase micro-jitters
   const micro = (Math.random() - 0.5) * (inWorkout ? 6.0 : inDay ? 4.0 : 1.0);
 
   const desired = target + drift + scrollBoost + micro;
@@ -662,7 +658,6 @@ function buildTumblrPostElement(p){
   const postId = String(p?.id || "");
   const inner = buildPostInner(p);
   
-  // Priority: 1. Real Title, 2. Inferred from Body, 3. Null
   let title = inner.title || null;
   let body = inner.html || "";
 
@@ -676,7 +671,6 @@ function buildTumblrPostElement(p){
   post.className = "tumblrPost";
   post.dataset.postId = postId;
 
-  // HEAD
   const head = document.createElement("div");
   head.className = "tumblrHead";
 
@@ -728,7 +722,6 @@ function buildTumblrPostElement(p){
     post.appendChild(head);
   }
 
-  // BODY
   const bodyEl = document.createElement("div");
   bodyEl.className = "tumblrBody";
   bodyEl.innerHTML = body || "";
@@ -737,7 +730,6 @@ function buildTumblrPostElement(p){
   const hasBody = (bodyEl.textContent || "").trim().length > 0 || bodyEl.querySelector("img, video, audio, iframe");
   if(hasBody) post.appendChild(bodyEl);
 
-  // SIGNOFF
   const tumblrUrl = p?.url_with_slug || p?.url || "";
   if(tumblrUrl){
     const signoff = document.createElement("div");
@@ -813,6 +805,13 @@ async function loadTumblrFeed(){
   tumblrLoading = true;
   const activePostId = getActivePostId();
 
+  // --- NEW: ARE.NA GRID MODE TRIGGER ---
+  if (currentTag === "thoughts" && !activePostId) {
+    tumblrFeed.classList.add("grid-mode");
+  } else {
+    tumblrFeed.classList.remove("grid-mode");
+  }
+
   try{
     if(tumblrStart === 0) tumblrFeed.textContent = "Loading…";
 
@@ -820,7 +819,7 @@ async function loadTumblrFeed(){
       start: tumblrStart,
       num: TUMBLR_PAGE_SIZE,
       id: activePostId || null,
-      tag: currentTag // Pass the current tag
+      tag: currentTag 
     });
 
     const raw = await fetchRaw(url);
@@ -830,7 +829,6 @@ async function loadTumblrFeed(){
 
     const posts = Array.isArray(data?.posts) ? data.posts : [];
     
-    // Clear feed only on first page load
     if(tumblrStart === 0) tumblrFeed.innerHTML = "";
 
     if(!posts.length){
@@ -874,28 +872,21 @@ function setupCategoryNav(){
   buttons.forEach(btn => {
     btn.addEventListener("click", () => {
       
-      // Special Case: Random Button
       if(btn.id === "randomBtn"){
          fetchRandomPost();
          return;
       }
 
-      // 1. VISUAL: Switch the Red Color
       buttons.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
 
-      // 2. LOGIC: Set the tag
-      // If data-tag is empty (the "All" button), it clears the filter
       currentTag = btn.dataset.tag || "";
       
-      // 3. RESET: Go back to page 1
       tumblrStart = 0;
       tumblrTotal = null;
       
-      // 4. CLEANUP: Remove any #hashtags from the URL so it looks clean
       history.pushState("", document.title, window.location.pathname + window.location.search);
 
-      // 5. FETCH: Get the new posts
       loadTumblrFeed();
     });
   });
@@ -905,7 +896,6 @@ async function fetchRandomPost(){
   if(tumblrLoading) return;
   tumblrFeed.textContent = "Rolling the dice...";
   
-  // 1. Get total post count first
   const url = tumblrJsonUrl({ start:0, num:1 });
   try {
     const raw = await fetchRaw(url);
@@ -914,17 +904,14 @@ async function fetchRandomPost(){
     
     if(!total) return;
 
-    // 2. Pick a random index
     const randomStart = Math.floor(Math.random() * total);
     
-    // 3. Fetch that specific post
     const randUrl = tumblrJsonUrl({ start: randomStart, num: 1 });
     const randRaw = await fetchRaw(randUrl);
     const randData = parseTumblrJsonp(randRaw);
     const post = randData.posts[0];
     
     if(post){
-      // 4. Force the view to that post
       window.location.hash = prettyHashForPost(post.id, post["regular-title"] || "random");
     }
   } catch(e) {
@@ -940,13 +927,11 @@ function hijackGoodreadsLinks() {
   const widget = document.querySelector(".goodreadsWidget");
   if (!widget) return;
 
-  // The widget loads via external script, so we must poll for the elements
   let attempts = 0;
   const interval = setInterval(() => {
     const links = widget.querySelectorAll("a");
     
     if (links.length > 0) {
-      // Found the links! Replace their hrefs
       links.forEach(a => {
         a.href = GOODREADS_PROFILE_URL;
         a.target = "_blank";
@@ -955,7 +940,6 @@ function hijackGoodreadsLinks() {
       clearInterval(interval);
     }
 
-    // Stop trying after 4 seconds (40 attempts)
     attempts++;
     if (attempts > 40) clearInterval(interval);
   }, 100);
@@ -978,10 +962,8 @@ function init(){
   window.addEventListener("online", updateOnline);
   window.addEventListener("offline", updateOnline);
 
-  // keep bpm reactive but not insane
   window.addEventListener("scroll", () => tickBpm(), { passive: true });
 
-  // routing
   window.addEventListener("hashchange", onRouteChange);
   window.addEventListener("popstate", onRouteChange);
 
@@ -990,13 +972,9 @@ function init(){
   loadLatest4FromRss().catch(() => {});
   loadSubs().catch(() => {});
 
-  // status typewriter
   runTypewriter(statusElTop, STATUS_ITEMS).catch(() => {});
 
-  // NEW: Fix the Goodreads links after the widget loads
   hijackGoodreadsLinks();
-
-  // NEW: Turn on the Category Nav
   setupCategoryNav();
 }
 
