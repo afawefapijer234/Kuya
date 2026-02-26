@@ -671,6 +671,20 @@ function buildTumblrPostElement(p){
   post.className = "tumblrPost";
   post.dataset.postId = postId;
 
+  // --- ADD THIS TO MAKE SQUARES CLICKABLE ---
+  post.addEventListener("click", (e) => {
+    // Ignore clicks if they clicked a real link or image inside the card
+    if(e.target.tagName === "A" || e.target.tagName === "BUTTON" || e.target.tagName === "IMG") return;
+    
+    // Only open the post if we are currently in Grid Mode
+    const feed = document.getElementById("tumblrFeed");
+    if(feed && feed.classList.contains("grid-mode")){
+      // Opens the full post in the same window (your zoomed-in post view)
+      window.location.hash = prettyHashForPost(postId, title || deriveTitle(p, inner));
+    }
+  });
+  // ------------------------------------------
+
   const head = document.createElement("div");
   head.className = "tumblrHead";
 
