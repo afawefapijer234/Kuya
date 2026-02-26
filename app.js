@@ -671,19 +671,14 @@ function buildTumblrPostElement(p){
   post.className = "tumblrPost";
   post.dataset.postId = postId;
 
-  // --- ADD THIS TO MAKE SQUARES CLICKABLE ---
   post.addEventListener("click", (e) => {
-    // Ignore clicks if they clicked a real link or image inside the card
     if(e.target.tagName === "A" || e.target.tagName === "BUTTON" || e.target.tagName === "IMG") return;
     
-    // Only open the post if we are currently in Grid Mode
     const feed = document.getElementById("tumblrFeed");
     if(feed && feed.classList.contains("grid-mode")){
-      // Opens the full post in the same window (your zoomed-in post view)
       window.location.hash = prettyHashForPost(postId, title || deriveTitle(p, inner));
     }
   });
-  // ------------------------------------------
 
   const head = document.createElement("div");
   head.className = "tumblrHead";
@@ -819,11 +814,19 @@ async function loadTumblrFeed(){
   tumblrLoading = true;
   const activePostId = getActivePostId();
 
-  // --- NEW: ARE.NA GRID MODE TRIGGER ---
   if (currentTag === "thoughts" && !activePostId) {
     tumblrFeed.classList.add("grid-mode");
   } else {
     tumblrFeed.classList.remove("grid-mode");
+  }
+
+  // --- NEW: UI FADING STATE TOGGLE ---
+  // If the user is on the main 'newest' feed, add this class to body. 
+  // It un-hides Goodreads and keeps the nav fully visible.
+  if (currentTag === "" && !activePostId) {
+    document.body.classList.add("is-newest");
+  } else {
+    document.body.classList.remove("is-newest");
   }
 
   try{
