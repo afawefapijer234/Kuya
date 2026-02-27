@@ -839,7 +839,9 @@ async function loadTumblrFeed(){
     const raw = await fetchRaw(url);
     const data = parseTumblrJsonp(raw);
 
-    tumblrTotal = Number.isFinite(Number(data?.posts_total)) ? Number(data.posts_total) : tumblrTotal;
+    // FIX: Using ["posts-total"] which is the real Tumblr property
+    const pt = data["posts-total"] || data.posts_total;
+    tumblrTotal = Number.isFinite(Number(pt)) ? Number(pt) : tumblrTotal;
 
     const posts = Array.isArray(data?.posts) ? data.posts : [];
     
@@ -864,7 +866,6 @@ async function loadTumblrFeed(){
       const p = posts[0];
       const el = buildTumblrPostElement(p);
       
-      // Add a class so we can center the title + metadata specifically in CSS
       el.classList.add("single-post-view");
       
       tumblrFeed.appendChild(el);
@@ -923,16 +924,18 @@ async function fetchRandomPost(){
   if(tumblrLoading) return;
   tumblrLoading = true; 
   
-  // Wrapped in our new stylized message class
   tumblrFeed.innerHTML = '<div class="feedMessage">Rolling the dice...</div>';
   
   try {
     const url = tumblrJsonUrl({ start:0, num:1 });
     const raw = await fetchRaw(url);
     const data = parseTumblrJsonp(raw);
-    const total = Number(data.posts_total);
     
-    if(!total) throw new Error("No posts found");
+    // FIX: Accessing the correct hyphenated property
+    const pt = data["posts-total"] || data.posts_total;
+    const total = Number(pt);
+    
+    if(!total || isNaN(total)) throw new Error("No posts found");
 
     const randomStart = Math.floor(Math.random() * total);
     
@@ -950,7 +953,6 @@ async function fetchRandomPost(){
       window.location.hash = prettyHashForPost(post.id, post["regular-title"] || "random");
     }
   } catch(e) {
-    // Shows the error message styled softly
     tumblrFeed.innerHTML = '<div class="feedMessage">Failed to find a random memory. Try again.</div>';
   } finally {
     tumblrLoading = false;
