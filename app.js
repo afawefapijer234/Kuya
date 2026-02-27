@@ -106,14 +106,12 @@ function prettyHashForPost(postId, title){
   return `#/${slug}--${postId}`;
 }
 
-// Parses specific post URLs
 function parsePrettyHash(){
   const h = location.hash || "";
   const m = h.match(/^#\/.+--(\d+)$/);
   return m ? m[1] : null;
 }
 
-// Parses simple category tags (Deep Linking)
 function getTagFromHash() {
   const h = (location.hash || "").replace("#", "");
   const validTags = ["thoughts", "design", "poly", "inspo"];
@@ -759,6 +757,7 @@ function buildTumblrPostElement(p){
   return post;
 }
 
+// --- FIXED PAGER LOGIC ---
 function renderTumblrPager(posts){
   if(!tumblrFeed) return;
 
@@ -767,9 +766,18 @@ function renderTumblrPager(posts){
 
   const canForward = tumblrStart > 0;
   
-  const numPostsThisPage = posts ? posts.length : 0;
-  const canBack = (numPostsThisPage === TUMBLR_PAGE_SIZE) && ((tumblrTotal == null) || (tumblrStart + TUMBLR_PAGE_SIZE < tumblrTotal));
+  // Safe math to check if there are strictly more posts available
+  const loadedCount = posts ? posts.length : 0;
+  let canBack = false;
 
+  if (tumblrTotal != null && tumblrTotal > 0) {
+    canBack = (tumblrStart + loadedCount) < tumblrTotal;
+  } else {
+    // Failsafe in case Tumblr API drops the "posts-total" string
+    canBack = loadedCount === TUMBLR_PAGE_SIZE;
+  }
+
+  // Hide the pager entirely if there is nowhere to go
   if(!canForward && !canBack) return;
 
   const pager = document.createElement("div");
@@ -865,7 +873,6 @@ async function loadTumblrFeed(){
       backBtn.className = "yzyBackBtn";
       backBtn.textContent = "← back to feed";
       backBtn.addEventListener("click", () => {
-        // Just empty the hash, which naturally returns to the previous feed state
         window.location.hash = "";
       });
       tumblrFeed.appendChild(backBtn);
@@ -892,9 +899,6 @@ async function loadTumblrFeed(){
   }
 }
 
-// ---------------------------------------------------------
-// NEW: Deep Linking Routing
-// ---------------------------------------------------------
 function onRouteChange(){
   tumblrStart = 0;
   
@@ -902,16 +906,13 @@ function onRouteChange(){
   const postId = parsePrettyHash();
 
   if (hashTag) {
-    // If the URL is exactly domain.com/#thoughts
     currentTag = hashTag;
     
-    // Visually update the active button in the top nav
     document.querySelectorAll(".catBtn").forEach(b => b.classList.remove("active"));
     const activeBtn = document.querySelector(`.catBtn[data-tag='${hashTag}']`);
     if (activeBtn) activeBtn.classList.add("active");
     
   } else if (!postId) {
-    // If there is NO hash (or an invalid one) and NO post ID, default to "newest"
     currentTag = "";
     document.querySelectorAll(".catBtn").forEach(b => b.classList.remove("active"));
     const activeBtn = document.querySelector(`.catBtn[data-tag='']`);
@@ -939,10 +940,8 @@ function setupCategoryNav(){
       const tag = btn.dataset.tag || "";
       
       if (tag) {
-        // Appending the tag to the URL hash triggers onRouteChange() automatically
         window.location.hash = tag; 
       } else {
-        // Clearing the category (clicking "newest"). PushState doesn't trigger hashchange, so we call it manually
         history.pushState("", document.title, window.location.pathname + window.location.search);
         onRouteChange(); 
       }
@@ -1055,7 +1054,6 @@ function initContextMenu() {
         fetchRandomPost();
       } else if (action === "tag") {
         const tag = btn.dataset.tag;
-        // Triggers the URL change natively
         if (tag) window.location.hash = tag;
       }
     });
