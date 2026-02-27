@@ -272,7 +272,7 @@ function smoothstep(t){
 
 function getDailyTargetParams(){
   const now = new Date();
-  const h = now.getHours() + now.getMinutes()/60;
+  const h = now.getHours() + Math.max(0, now.getMinutes())/60;
 
   const inWorkout = (h >= 20 && h < 21);
   const inSleep = (h >= 21 || h < 6);
@@ -757,7 +757,7 @@ function buildTumblrPostElement(p){
   return post;
 }
 
-// --- FIXED PAGER LOGIC ---
+// --- BULLETPROOF PAGER FIX ---
 function renderTumblrPager(posts){
   if(!tumblrFeed) return;
 
@@ -766,18 +766,11 @@ function renderTumblrPager(posts){
 
   const canForward = tumblrStart > 0;
   
-  // Safe math to check if there are strictly more posts available
-  const loadedCount = posts ? posts.length : 0;
-  let canBack = false;
+  // We throw out all complex math relying on the buggy Tumblr API post-total.
+  // Instead, if the screen successfully loads any posts, we assume there might be a past page.
+  const numPosts = Array.isArray(posts) ? posts.length : 0;
+  const canBack = numPosts > 0;
 
-  if (tumblrTotal != null && tumblrTotal > 0) {
-    canBack = (tumblrStart + loadedCount) < tumblrTotal;
-  } else {
-    // Failsafe in case Tumblr API drops the "posts-total" string
-    canBack = loadedCount === TUMBLR_PAGE_SIZE;
-  }
-
-  // Hide the pager entirely if there is nowhere to go
   if(!canForward && !canBack) return;
 
   const pager = document.createElement("div");
@@ -854,16 +847,19 @@ async function loadTumblrFeed(){
     const raw = await fetchRaw(url);
     const data = parseTumblrJsonp(raw);
 
-    const pt = data["posts-total"] || data.posts_total;
-    tumblrTotal = Number.isFinite(Number(pt)) ? Number(pt) : tumblrTotal;
-
     const posts = Array.isArray(data?.posts) ? data.posts : [];
     
     if(tumblrStart === 0) tumblrFeed.innerHTML = "";
 
+    // --- GRACEFUL EMPTY STATE FIX ---
     if(!posts.length){
       if(tumblrStart === 0) {
          tumblrFeed.innerHTML = '<div class="feedMessage">No posts found in this collection.</div>';
+      } else {
+         // If you click 'back in time' and hit an empty page, it shows this message
+         // and renders the 'forward' button so you aren't trapped!
+         tumblrFeed.innerHTML = '<div class="feedMessage">You have reached the very beginning of the archive.</div>';
+         renderTumblrPager([]); 
       }
       return;
     }
