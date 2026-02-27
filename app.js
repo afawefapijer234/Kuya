@@ -760,7 +760,6 @@ function renderTumblrPager(posts){
 
   const canForward = tumblrStart > 0;
   
-  // FIX: Only show "Back in time" if the current page is full AND there are more total posts
   const numPostsThisPage = posts ? posts.length : 0;
   const canBack = (numPostsThisPage === TUMBLR_PAGE_SIZE) && ((tumblrTotal == null) || (tumblrStart + TUMBLR_PAGE_SIZE < tumblrTotal));
 
@@ -826,7 +825,9 @@ async function loadTumblrFeed(){
   }
 
   try{
-    if(tumblrStart === 0) tumblrFeed.textContent = "Loading…";
+    if(tumblrStart === 0) {
+      tumblrFeed.innerHTML = '<div class="feedMessage">Loading...</div>';
+    }
 
     const url = tumblrJsonUrl({
       start: tumblrStart,
@@ -845,23 +846,27 @@ async function loadTumblrFeed(){
     if(tumblrStart === 0) tumblrFeed.innerHTML = "";
 
     if(!posts.length){
-      if(tumblrStart === 0) tumblrFeed.textContent = "No posts found in this collection.";
+      if(tumblrStart === 0) {
+         tumblrFeed.innerHTML = '<div class="feedMessage">No posts found in this collection.</div>';
+      }
       return;
     }
 
     if(activePostId){
-      // --- TERMINAL BACK BUTTON ---
       const backBtn = document.createElement("button");
       backBtn.className = "yzyBackBtn";
       backBtn.textContent = "[ ← back to feed ]";
       backBtn.addEventListener("click", () => {
-        // Clears hash, returns to previous feed view natively
         window.location.hash = "";
       });
       tumblrFeed.appendChild(backBtn);
 
       const p = posts[0];
       const el = buildTumblrPostElement(p);
+      
+      // Add a class so we can center the title + metadata specifically in CSS
+      el.classList.add("single-post-view");
+      
       tumblrFeed.appendChild(el);
 
       const inner = buildPostInner(p);
@@ -873,7 +878,7 @@ async function loadTumblrFeed(){
     renderTumblrPager(posts);
   }catch(e){
     console.error(e);
-    tumblrFeed.textContent = "Unable to load feed.";
+    tumblrFeed.innerHTML = '<div class="feedMessage">Unable to load feed.</div>';
   }finally{
     tumblrLoading = false;
   }
@@ -914,11 +919,12 @@ function setupCategoryNav(){
   });
 }
 
-// FIX: Rewritten Random Logic to prevent hang
 async function fetchRandomPost(){
   if(tumblrLoading) return;
-  tumblrLoading = true; // Lock execution
-  tumblrFeed.textContent = "Rolling the dice...";
+  tumblrLoading = true; 
+  
+  // Wrapped in our new stylized message class
+  tumblrFeed.innerHTML = '<div class="feedMessage">Rolling the dice...</div>';
   
   try {
     const url = tumblrJsonUrl({ start:0, num:1 });
@@ -936,15 +942,16 @@ async function fetchRandomPost(){
     const post = randData.posts[0];
     
     if(post){
-      // Clear the tag filter so we don't try to load the random post inside a filtered category
       currentTag = ""; 
       document.querySelectorAll(".catBtn").forEach(b => b.classList.remove("active"));
-      document.querySelector(".catBtn[data-tag='']").classList.add("active");
+      const allBtn = document.querySelector(".catBtn[data-tag='']");
+      if(allBtn) allBtn.classList.add("active");
 
       window.location.hash = prettyHashForPost(post.id, post["regular-title"] || "random");
     }
   } catch(e) {
-    tumblrFeed.textContent = "Failed to find a random memory. Try again.";
+    // Shows the error message styled softly
+    tumblrFeed.innerHTML = '<div class="feedMessage">Failed to find a random memory. Try again.</div>';
   } finally {
     tumblrLoading = false;
   }
@@ -988,7 +995,6 @@ function initContextMenu() {
     e.preventDefault();
     ctxMenu.style.display = "flex";
     
-    // Ensure the menu doesn't go off screen
     const x = Math.min(e.clientX, window.innerWidth - ctxMenu.offsetWidth);
     const y = Math.min(e.clientY, window.innerHeight - ctxMenu.offsetHeight);
     
@@ -996,22 +1002,19 @@ function initContextMenu() {
     ctxMenu.style.top = y + "px";
   });
 
-  // Hide when clicking outside
   document.addEventListener("click", (e) => {
     if (!ctxMenu.contains(e.target)) {
       ctxMenu.style.display = "none";
     }
   });
 
-  // Hide on scroll
   window.addEventListener("scroll", () => {
     ctxMenu.style.display = "none";
   }, { passive: true });
 
-  // Route clicks to top nav buttons programmatically
   ctxMenu.querySelectorAll("button").forEach(btn => {
     btn.addEventListener("click", () => {
-      ctxMenu.style.display = "none"; // hide immediately
+      ctxMenu.style.display = "none"; 
       
       const action = btn.dataset.action;
       
@@ -1021,7 +1024,6 @@ function initContextMenu() {
         fetchRandomPost();
       } else if (action === "tag") {
         const tag = btn.dataset.tag;
-        // Trigger a click on the real navigation button to keep states synced
         const navBtn = document.querySelector(`.catBtn[data-tag='${tag}']`);
         if (navBtn) navBtn.click();
       }
