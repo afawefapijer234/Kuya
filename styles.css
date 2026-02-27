@@ -131,29 +131,27 @@ a:hover, button:hover {
    UI FADING & HIDING LOGIC (Newest vs Categories)
 ========================================================= */
 
-/* Hide 'Currently Reading' and Feed Kicker if NOT on 'Newest' */
 body:not(.is-newest) .goodreads,
 body:not(.is-newest) .feed .feedKicker {
   display: none;
 }
 
-/* Fade out highlighted elements if NOT on 'Newest' */
 body:not(.is-newest) .inlineSocials,
 body:not(.is-newest) .statusRow,
 body:not(.is-newest) .categoryNav,
 body:not(.is-newest) .topbarRight {
   opacity: 0;
-  pointer-events: none; /* Prevents accidental clicks when invisible */
-  transition: opacity 0.4s ease;
+  pointer-events: none; 
+  transition: opacity 1.5s ease; /* SLOW FADE OUT */
 }
 
-/* Fade them back in when hovering anywhere in the Topbar area */
 body:not(.is-newest) .topbar:hover .inlineSocials,
 body:not(.is-newest) .topbar:hover .statusRow,
 body:not(.is-newest) .topbar:hover .categoryNav,
 body:not(.is-newest) .topbar:hover .topbarRight {
   opacity: 1;
   pointer-events: auto;
+  transition: opacity 0.2s ease; /* FAST FADE IN */
 }
 
 /* ========================================================= */
@@ -169,17 +167,25 @@ body:not(.is-newest) .topbar:hover .topbarRight {
 .tumblrPost { padding: 16px 0; }
 .tumblrPost:first-child { padding-top: 6px; }
 
-/* Force Title to be above Meta (Date/Share) */
+/* Setup for proper Title vs Meta hierarchy */
 .tumblrHead { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
 .tumblrHeadLeft { display: flex; flex-direction: column; gap: 4px; } 
 .tumblrMeta { display: inline-flex; align-items: center; gap: 10px; }
 
-/* Increased Hierarchy for Title */
+/* Increased Hierarchy for Title and made it a link */
 .tumblrPostTitle {
-  font-size: 1.4em; /* Makes title significantly larger */
+  display: inline-block;
+  font-size: 20px; 
   font-weight: 600;
   color: var(--text);
   line-height: 1.3;
+  margin-bottom: 2px;
+  text-decoration: none; 
+  transition: color 0.2s ease;
+}
+
+.tumblrPostTitle:hover {
+  color: var(--accent);
 }
 
 .tumblrShareInline, .tumblrPostDate {
