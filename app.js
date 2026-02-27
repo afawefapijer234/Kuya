@@ -4,15 +4,12 @@
    CONFIG
 ========================================================= */
 
-// YouTube (optional)
 const YT_CHANNEL_ID = "UCuDJUj1szS87hLRjXQKnmaA";
 const YT_CHANNEL_FALLBACK_URL = "https://www.youtube.com/@houseoftakuya";
 
-// Tumblr (JSONP read API)
 const TUMBLR_BLOG = "takuyakitano";
 const TUMBLR_PAGE_SIZE = 10;
 
-// Goodreads
 const GOODREADS_PROFILE_URL = "https://www.goodreads.com/takuyakitano"; 
 
 /* =========================================================
@@ -33,7 +30,6 @@ const ytCard = document.getElementById("ytCard");
 const tumblrFeed = document.getElementById("tumblrFeed");
 const yearEl = document.getElementById("year");
 
-// Top status typewriter
 const statusElTop = document.getElementById("statusMsg");
 
 const STATUS_ITEMS = [
@@ -70,7 +66,6 @@ function stripHtml(s){
     .trim();
 }
 
-// very light sanitization (Tumblr captions can include HTML)
 function sanitizeHtml(html){
   let out = String(html || "");
   out = out.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "");
@@ -145,7 +140,7 @@ async function copyToClipboard(text){
   }
 }
 
-// --- TITLE EXTRACTION HELPER ---
+// --- TITLE EXTRACTION HELPER (Upgraded for Header Tags) ---
 function extractTitleFromBody(html) {
   if (!html) return { title: null, body: html };
 
@@ -153,30 +148,35 @@ function extractTitleFromBody(html) {
   temp.innerHTML = html;
 
   const firstEl = temp.firstElementChild;
-  if (!firstEl || firstEl.tagName !== "P") {
-    return { title: null, body: html };
+  if (!firstEl) return { title: null, body: html };
+
+  // Detects P tags AND Header tags which you are using for titles
+  const validTags = ["P", "H1", "H2", "H3", "H4", "H5", "H6"];
+  
+  if (validTags.includes(firstEl.tagName)) {
+    const text = firstEl.textContent.trim();
+    if (!text) return { title: null, body: html };
+
+    // Heuristics to reject bad titles
+    const tooLong = text.length > 80;
+    const hasLineBreaks = /\n/.test(text);
+    const looksLikeList = /^[-•*]\s/.test(text);
+    const tooManyDashes = (text.match(/\s-\s/g) || []).length >= 2;
+
+    if (tooLong || hasLineBreaks || looksLikeList || tooManyDashes) {
+      return { title: null, body: html };
+    }
+
+    // Accept as title and rip it out of the body
+    firstEl.remove();
+
+    return {
+      title: text,
+      body: temp.innerHTML.trim()
+    };
   }
 
-  const text = firstEl.textContent.trim();
-  if (!text) return { title: null, body: html };
-
-  // Heuristics to reject bad titles
-  const tooLong = text.length > 80;
-  const hasLineBreaks = /\n/.test(text);
-  const looksLikeList = /^[-•*]\s/.test(text);
-  const tooManyDashes = (text.match(/\s-\s/g) || []).length >= 2;
-
-  if (tooLong || hasLineBreaks || looksLikeList || tooManyDashes) {
-    return { title: null, body: html };
-  }
-
-  // Accept as title
-  firstEl.remove();
-
-  return {
-    title: text,
-    body: temp.innerHTML.trim()
-  };
+  return { title: null, body: html };
 }
 
 /* =========================================================
@@ -206,7 +206,7 @@ async function runTypewriter(el, items) {
       for (let i = 0; i < full.length; i++) {
         el.textContent += full[i];
         const ch = full[i];
-        const base = 38 + Math.random() * 60; // slower
+        const base = 38 + Math.random() * 60; 
         const extra =
           ch === "." ? 180 + Math.random() * 220 :
           ch === "," ? 120 + Math.random() * 180 :
@@ -252,16 +252,15 @@ function updateOnline(){
   dot.style.boxShadow = on ? "0 0 18px rgba(0,160,120,.35)" : "0 0 18px rgba(220,80,80,.30)";
 }
 
-// heart-ish bpm schedule model
 let bpmValue = 72;
 let bpmVel = 0;
 let drift = 0;
 let lastTick = performance.now();
 
 const SCHEDULE = {
-  sleep:   { min: 35,  max: 45  }, // 9pm–6am
-  day:     { min: 60,  max: 80  }, // 6am–8pm
-  workout: { min: 120, max: 180 }  // 8pm–9pm
+  sleep:   { min: 35,  max: 45  }, 
+  day:     { min: 60,  max: 80  }, 
+  workout: { min: 120, max: 180 }  
 };
 
 function smoothstep(t){
@@ -280,7 +279,6 @@ function getDailyTargetParams(){
   let band = inWorkout ? SCHEDULE.workout : (inSleep ? SCHEDULE.sleep : SCHEDULE.day);
   let target = randFloat(band.min, band.max);
 
-  // soft ramps (30 min)
   if(h >= 19.5 && h < 20){
     const t = smoothstep((h - 19.5) / 0.5);
     const dayTarget = randFloat(SCHEDULE.day.min, SCHEDULE.day.max);
@@ -686,10 +684,12 @@ function buildTumblrPostElement(p){
   const left = document.createElement("div");
   left.className = "tumblrHeadLeft";
 
+  // --- NEW: Title rendered as a link ABOVE the Meta ---
   if (title) {
-    const t = document.createElement("div");
+    const t = document.createElement("a");
     t.className = "tumblrPostTitle";
     t.textContent = title;
+    t.href = buildNativeShareUrl(postId, title || deriveTitle(p, inner));
     left.appendChild(t);
   }
 
@@ -820,9 +820,6 @@ async function loadTumblrFeed(){
     tumblrFeed.classList.remove("grid-mode");
   }
 
-  // --- NEW: UI FADING STATE TOGGLE ---
-  // If the user is on the main 'newest' feed, add this class to body. 
-  // It un-hides Goodreads and keeps the nav fully visible.
   if (currentTag === "" && !activePostId) {
     document.body.classList.add("is-newest");
   } else {
