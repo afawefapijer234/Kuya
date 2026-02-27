@@ -757,7 +757,7 @@ function buildTumblrPostElement(p){
   return post;
 }
 
-// --- BULLETPROOF PAGER FIX ---
+// --- FIXED PAGER LOGIC ---
 function renderTumblrPager(posts){
   if(!tumblrFeed) return;
 
@@ -766,8 +766,6 @@ function renderTumblrPager(posts){
 
   const canForward = tumblrStart > 0;
   
-  // We throw out all complex math relying on the buggy Tumblr API post-total.
-  // Instead, if the screen successfully loads any posts, we assume there might be a past page.
   const numPosts = Array.isArray(posts) ? posts.length : 0;
   const canBack = numPosts > 0;
 
@@ -780,7 +778,7 @@ function renderTumblrPager(posts){
     const forwardBtn = document.createElement("button");
     forwardBtn.type = "button";
     forwardBtn.textContent = "forward in time";
-    forwardBtn.disabled = tumblrLoading;
+    // We NO LONGER set disabled on load. The CSS/JS handles loading clicks.
     forwardBtn.addEventListener("click", () => {
       if(tumblrLoading) return;
       tumblrStart = Math.max(0, tumblrStart - TUMBLR_PAGE_SIZE);
@@ -801,7 +799,7 @@ function renderTumblrPager(posts){
     const backBtn = document.createElement("button");
     backBtn.type = "button";
     backBtn.textContent = "back in time";
-    backBtn.disabled = tumblrLoading;
+    // We NO LONGER set disabled on load. The CSS/JS handles loading clicks.
     backBtn.addEventListener("click", () => {
       if(tumblrLoading) return;
       tumblrStart = tumblrStart + TUMBLR_PAGE_SIZE;
@@ -847,6 +845,9 @@ async function loadTumblrFeed(){
     const raw = await fetchRaw(url);
     const data = parseTumblrJsonp(raw);
 
+    const pt = data["posts-total"] || data.posts_total;
+    tumblrTotal = Number.isFinite(Number(pt)) ? Number(pt) : tumblrTotal;
+
     const posts = Array.isArray(data?.posts) ? data.posts : [];
     
     if(tumblrStart === 0) tumblrFeed.innerHTML = "";
@@ -856,10 +857,9 @@ async function loadTumblrFeed(){
       if(tumblrStart === 0) {
          tumblrFeed.innerHTML = '<div class="feedMessage">No posts found in this collection.</div>';
       } else {
-         // If you click 'back in time' and hit an empty page, it shows this message
-         // and renders the 'forward' button so you aren't trapped!
          tumblrFeed.innerHTML = '<div class="feedMessage">You have reached the very beginning of the archive.</div>';
-         renderTumblrPager([]); 
+         // Still render pager so they can click "forward"
+         // Pass empty array so it correctly calculates that we can't go backwards
       }
       return;
     }
@@ -886,12 +886,19 @@ async function loadTumblrFeed(){
     }
 
     posts.forEach(p => tumblrFeed.appendChild(buildTumblrPostElement(p)));
-    renderTumblrPager(posts);
+    
   }catch(e){
     console.error(e);
     tumblrFeed.innerHTML = '<div class="feedMessage">Unable to load feed.</div>';
   }finally{
     tumblrLoading = false;
+    
+    // GPT Fix: Re-render the pager AFTER the loading state is flipped to false
+    // so the buttons aren't permanently locked. 
+    if (!getActivePostId()) {
+      const postsOnScreen = Array.from(document.querySelectorAll(".tumblrPost"));
+      renderTumblrPager(postsOnScreen);
+    }
   }
 }
 
