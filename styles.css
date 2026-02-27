@@ -194,7 +194,7 @@ body:not(.is-newest) .topbar:hover .topbarRight {
 .tumblrPostTitle {
   display: inline-block;
   font-size: 20px; 
-  font-weight: 700; /* Increased to 700 for more thickness */
+  font-weight: 700; 
   color: var(--muted); 
   line-height: 1.3;
   margin-bottom: 2px;
@@ -242,59 +242,98 @@ body:not(.is-newest) .topbar:hover .topbarRight {
 .tumblrSignoff { margin-top: 12px; text-align: center; color: rgba(0,0,0,.55); }
 .tumblrSignoff a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 
+/* --- FROSTED PAGER BUTTONS --- */
 .tumblrPager { justify-content: space-between; gap: 12px; padding: 18px 0 4px; margin-top: 14px; }
 .tumblrPager .spacer { flex: 1; }
-.tumblrPager button { border: 1px solid rgba(0,0,0,.14); border-radius: 999px; padding: 8px 12px; opacity: .75; }
-.tumblrPager button:hover { opacity: 1; }
+.tumblrPager button { 
+  background: rgba(255, 255, 255, 0.4); /* Translucent */
+  backdrop-filter: blur(12px); /* Glass blur */
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,0,0,.08); 
+  border-radius: 999px; 
+  padding: 8px 16px; 
+  opacity: .85; 
+  box-shadow: 0 4px 12px rgba(0,0,0,.02);
+  transition: all 0.2s ease;
+}
+.tumblrPager button:hover { 
+  opacity: 1; 
+  background: rgba(255, 255, 255, 0.8);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,.05);
+}
 .tumblrPager button[disabled] { opacity: 0; pointer-events: none; }
 
-/* --- TERMINAL BACK BUTTON --- */
+/* --- FROSTED TERMINAL BACK BUTTON --- */
 .yzyBackBtn {
   display: inline-block;
   margin-bottom: 24px;
-  font-family: inherit;
-  color: var(--muted);
-  cursor: pointer;
+  color: var(--text);
   font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  transition: color 0.2s ease;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,0,0,0.06);
+  padding: 8px 16px;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.02);
+  transition: all 0.2s ease;
 }
 .yzyBackBtn:hover {
+  background: rgba(255, 255, 255, 0.9);
   color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,.05);
 }
 
-/* --- YZY CONTEXT MENU --- */
+/* --- FROSTED CONTEXT MENU --- */
 .yzy-context-menu {
   position: fixed;
   display: none; 
   flex-direction: column;
-  background: var(--bg);
-  border: 1px solid var(--text);
-  box-shadow: 4px 4px 0px rgba(0,0,0,0.1);
-  padding: 8px 0;
+  background: rgba(255, 255, 255, 0.65); /* Glass Background */
+  backdrop-filter: blur(20px); /* Heavy Blur */
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px; /* Soft rounded menu */
+  box-shadow: 0 12px 32px rgba(0,0,0,0.08); /* Float shadow */
+  padding: 8px; /* Inner padding for pill buttons */
   z-index: 9999;
-  min-width: 140px;
+  min-width: 160px;
 }
 .yzy-context-menu button {
   text-align: left;
-  padding: 6px 16px;
+  padding: 8px 16px;
   color: var(--text);
   font-size: 13px;
-  border-radius: 0;
+  border-radius: 8px; /* Inner Pill shape */
+  transition: background 0.2s, transform 0.2s, color 0.2s;
 }
 .yzy-context-menu button:hover {
-  background: var(--text);
-  color: var(--bg);
+  background: rgba(0, 0, 0, 0.04); /* Subtle darkening on hover */
+  color: var(--accent);
+  transform: translateX(4px); /* Cute slide-right interaction */
 }
 
+/* --- LIGHTBOX --- */
 #imgLightbox { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 9999; background: rgba(0,0,0,.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); padding: 24px; }
 #imgLightbox.open { display: flex; }
 #imgLightbox .lbInner { max-width: min(1200px, 96vw); max-height: 92vh; display: grid; gap: 10px; justify-items: end; }
 #imgLightbox img { max-width: min(1200px, 96vw); max-height: 88vh; border-radius: 14px; background: rgba(255,255,255,.04); }
-#imgLightbox .lbClose { background: rgba(255,255,255,.14); color: rgba(255,255,255,.92); border-radius: 999px; padding: 8px 12px; }
-#imgLightbox .lbClose:hover { background: rgba(255,255,255,.20); }
 
+/* Frosted Lightbox Close Button */
+#imgLightbox .lbClose { 
+  background: rgba(255,255,255,.14); 
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: rgba(255,255,255,.92); 
+  border-radius: 999px; 
+  padding: 8px 16px; 
+  transition: background 0.2s;
+}
+#imgLightbox .lbClose:hover { background: rgba(255,255,255,.25); }
+
+/* --- GOODREADS --- */
 .goodreads { margin-top: 6px; }
 .goodreadsWidget { margin-top: 10px; }
 .goodreadsWidget .gr_grid_container { width: 100% !important; }
@@ -322,7 +361,7 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   overflow: hidden; 
   position: relative;
   cursor: pointer; 
-  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 /* Gentle lift and opacity increase on hover */
@@ -330,6 +369,7 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   transform: translateY(-2px); 
   background: rgba(255, 255, 255, 0.7);
   border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.06); 
 }
 
 .tumblrFeed.grid-mode .tumblrPost:first-child {
