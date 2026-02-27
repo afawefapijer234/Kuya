@@ -128,7 +128,7 @@ a:hover, button:hover {
 .bpmLine { color: var(--accent); letter-spacing: .01em; }
 
 /* =========================================================
-   UI FADING & HIDING LOGIC (Newest vs Categories)
+   UI FADING & HIDING LOGIC 
 ========================================================= */
 
 body:not(.is-newest) .goodreads,
@@ -167,17 +167,16 @@ body:not(.is-newest) .topbar:hover .topbarRight {
 .tumblrPost { padding: 16px 0; }
 .tumblrPost:first-child { padding-top: 6px; }
 
-/* Setup for proper Title vs Meta hierarchy */
 .tumblrHead { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
 .tumblrHeadLeft { display: flex; flex-direction: column; gap: 4px; } 
 .tumblrMeta { display: inline-flex; align-items: center; gap: 10px; }
 
-/* Increased Hierarchy for Title and made it a link */
+/* --- UPDATED TITLE: 20px, Muted Color --- */
 .tumblrPostTitle {
   display: inline-block;
   font-size: 20px; 
-  font-weight: 600;
-  color: var(--text);
+  font-weight: 500;
+  color: var(--muted); 
   line-height: 1.3;
   margin-bottom: 2px;
   text-decoration: none; 
@@ -224,12 +223,54 @@ body:not(.is-newest) .topbar:hover .topbarRight {
 .tumblrSignoff { margin-top: 12px; text-align: center; color: rgba(0,0,0,.55); }
 .tumblrSignoff a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 
-.tumblrPager { justify-content: space-between; gap: 12px; padding: 18px 0 4px; margin-top: 14px; border-top: 1px solid rgba(0,0,0,.08); }
+/* Removed the border-top from pager */
+.tumblrPager { justify-content: space-between; gap: 12px; padding: 18px 0 4px; margin-top: 14px; }
 .tumblrPager .spacer { flex: 1; }
 .tumblrPager button { border: 1px solid rgba(0,0,0,.14); border-radius: 999px; padding: 8px 12px; opacity: .75; }
 .tumblrPager button:hover { opacity: 1; }
 .tumblrPager button[disabled] { opacity: 0; pointer-events: none; }
 
+/* --- TERMINAL BACK BUTTON --- */
+.yzyBackBtn {
+  display: inline-block;
+  margin-bottom: 24px;
+  font-family: inherit;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: color 0.2s ease;
+}
+.yzyBackBtn:hover {
+  color: var(--accent);
+}
+
+/* --- YZY CONTEXT MENU --- */
+.yzy-context-menu {
+  position: fixed;
+  display: none; /* Hidden by default */
+  flex-direction: column;
+  background: var(--bg);
+  border: 1px solid var(--text);
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.1);
+  padding: 8px 0;
+  z-index: 9999;
+  min-width: 140px;
+}
+.yzy-context-menu button {
+  text-align: left;
+  padding: 6px 16px;
+  color: var(--text);
+  font-size: 13px;
+  border-radius: 0;
+}
+.yzy-context-menu button:hover {
+  background: var(--text);
+  color: var(--bg);
+}
+
+/* --- LIGHTBOX --- */
 #imgLightbox { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 9999; background: rgba(0,0,0,.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); padding: 24px; }
 #imgLightbox.open { display: flex; }
 #imgLightbox .lbInner { max-width: min(1200px, 96vw); max-height: 92vh; display: grid; gap: 10px; justify-items: end; }
@@ -243,7 +284,7 @@ body:not(.is-newest) .topbar:hover .topbarRight {
 .goodreadsWidget .gr_grid_book_container { display: inline-block !important; width: 39px !important; height: 60px !important; margin: 0 10px 10px 0 !important; padding: 0 !important; float: none !important; }
 .goodreadsWidget .gr_grid_book_container img { width: 39px !important; height: 60px !important; object-fit: cover; border-radius: 6px; display: block; }
 
-/* --- THOUGHTS GRID (Are.na Style Squares) --- */
+/* --- YEEZY THOUGHTS GRID (Raw / Brutalist) --- */
 .tumblrFeed.grid-mode {
   display: grid; 
   grid-template-columns: repeat(3, 1fr); 
@@ -254,37 +295,30 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   aspect-ratio: 1 / 1; 
   margin-bottom: 0; 
   padding: 16px;
-  background: #fff; 
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,.02); 
+  background: transparent; /* No more white box */
+  border: 1px solid var(--text); /* Stark outline */
+  border-radius: 0; /* Sharp corners */
+  box-shadow: none; /* No soft shadow */
   overflow: hidden; 
   position: relative;
   cursor: pointer; 
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
 }
 
+/* Instant, brutal inversion on hover */
 .tumblrFeed.grid-mode .tumblrPost:hover {
-  border-color: var(--muted);
-  box-shadow: 0 6px 16px rgba(0,0,0,.06);
-  transform: translateY(-2px); 
+  background: var(--text);
+  border-color: var(--text);
+}
+
+.tumblrFeed.grid-mode .tumblrPost:hover * {
+  color: var(--bg) !important;
 }
 
 .tumblrFeed.grid-mode .tumblrPost:first-child {
   padding-top: 16px;
 }
 
-.tumblrFeed.grid-mode .tumblrPost::after {
-  content: "";
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 48px;
-  background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1) 90%);
-  pointer-events: none; 
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
-}
-
+/* Hide clutter in grid mode to stay minimal */
 .tumblrFeed.grid-mode .tumblrMeta,
 .tumblrFeed.grid-mode .tumblrSignoff {
   display: none;
