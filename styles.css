@@ -180,11 +180,11 @@ body:not(.is-newest) .topbar:hover .topbarRight {
 .tumblrHeadLeft { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; } 
 .tumblrMeta { display: inline-flex; align-items: center; gap: 10px; }
 
-/* Centered View + More Space for Single Posts */
+/* Centered View for when a post is clicked open */
 .tumblrPost.single-post-view .tumblrHead {
   align-items: center;
   text-align: center;
-  margin-bottom: 36px; /* Added much more breathing room here */
+  margin-bottom: 36px; /* Breathing room */
 }
 .tumblrPost.single-post-view .tumblrHeadLeft {
   align-items: center;
@@ -262,7 +262,14 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(0,0,0,.05);
 }
-.tumblrPager button[disabled] { opacity: 0; pointer-events: none; }
+
+/* FIX: Don't make disabled buttons completely invisible */
+.tumblrPager button[disabled] { 
+  opacity: .35; 
+  pointer-events: none; 
+  transform: none;
+  box-shadow: none;
+}
 
 /* --- CLEAN TEXT BACK BUTTON --- */
 .yzyBackBtn {
