@@ -140,7 +140,7 @@ async function copyToClipboard(text){
   }
 }
 
-// --- TITLE EXTRACTION HELPER (Upgraded for Header Tags) ---
+// --- TITLE EXTRACTION HELPER ---
 function extractTitleFromBody(html) {
   if (!html) return { title: null, body: html };
 
@@ -150,14 +150,12 @@ function extractTitleFromBody(html) {
   const firstEl = temp.firstElementChild;
   if (!firstEl) return { title: null, body: html };
 
-  // Detects P tags AND Header tags which you are using for titles
   const validTags = ["P", "H1", "H2", "H3", "H4", "H5", "H6"];
   
   if (validTags.includes(firstEl.tagName)) {
     const text = firstEl.textContent.trim();
     if (!text) return { title: null, body: html };
 
-    // Heuristics to reject bad titles
     const tooLong = text.length > 80;
     const hasLineBreaks = /\n/.test(text);
     const looksLikeList = /^[-•*]\s/.test(text);
@@ -167,7 +165,6 @@ function extractTitleFromBody(html) {
       return { title: null, body: html };
     }
 
-    // Accept as title and rip it out of the body
     firstEl.remove();
 
     return {
@@ -180,7 +177,7 @@ function extractTitleFromBody(html) {
 }
 
 /* =========================================================
-   TYPEWRITER (with micro-pauses)
+   TYPEWRITER 
 ========================================================= */
 
 function isPunct(ch){
@@ -351,7 +348,7 @@ function tickBpm(){
 }
 
 /* =========================================================
-   FETCH (CORS fallback)
+   FETCH 
 ========================================================= */
 
 async function fetchRaw(url){
@@ -366,7 +363,7 @@ async function fetchRaw(url){
 }
 
 /* =========================================================
-   LIGHTBOX (image zoom)
+   LIGHTBOX 
 ========================================================= */
 
 function ensureLightbox(){
@@ -433,7 +430,7 @@ function bindZoomableImages(container){
 }
 
 /* =========================================================
-   YOUTUBE (optional)
+   YOUTUBE
 ========================================================= */
 
 function xmlAllBetween(xml, startTag, endTag){
@@ -684,7 +681,6 @@ function buildTumblrPostElement(p){
   const left = document.createElement("div");
   left.className = "tumblrHeadLeft";
 
-  // --- NEW: Title rendered as a link ABOVE the Meta ---
   if (title) {
     const t = document.createElement("a");
     t.className = "tumblrPostTitle";
@@ -756,14 +752,17 @@ function buildTumblrPostElement(p){
   return post;
 }
 
-function renderTumblrPager(){
+function renderTumblrPager(posts){
   if(!tumblrFeed) return;
 
   tumblrFeed.querySelectorAll(".tumblrPager").forEach(n => n.remove());
   if(getActivePostId()) return;
 
   const canForward = tumblrStart > 0;
-  const canBack = (tumblrTotal == null) ? true : (tumblrStart + TUMBLR_PAGE_SIZE < tumblrTotal);
+  
+  // FIX: Only show "Back in time" if the current page is full AND there are more total posts
+  const numPostsThisPage = posts ? posts.length : 0;
+  const canBack = (numPostsThisPage === TUMBLR_PAGE_SIZE) && ((tumblrTotal == null) || (tumblrStart + TUMBLR_PAGE_SIZE < tumblrTotal));
 
   if(!canForward && !canBack) return;
 
@@ -851,6 +850,16 @@ async function loadTumblrFeed(){
     }
 
     if(activePostId){
+      // --- TERMINAL BACK BUTTON ---
+      const backBtn = document.createElement("button");
+      backBtn.className = "yzyBackBtn";
+      backBtn.textContent = "[ ← back to feed ]";
+      backBtn.addEventListener("click", () => {
+        // Clears hash, returns to previous feed view natively
+        window.location.hash = "";
+      });
+      tumblrFeed.appendChild(backBtn);
+
       const p = posts[0];
       const el = buildTumblrPostElement(p);
       tumblrFeed.appendChild(el);
@@ -861,13 +870,12 @@ async function loadTumblrFeed(){
     }
 
     posts.forEach(p => tumblrFeed.appendChild(buildTumblrPostElement(p)));
-    renderTumblrPager();
+    renderTumblrPager(posts);
   }catch(e){
     console.error(e);
     tumblrFeed.textContent = "Unable to load feed.";
   }finally{
     tumblrLoading = false;
-    renderTumblrPager();
   }
 }
 
@@ -906,17 +914,19 @@ function setupCategoryNav(){
   });
 }
 
+// FIX: Rewritten Random Logic to prevent hang
 async function fetchRandomPost(){
   if(tumblrLoading) return;
+  tumblrLoading = true; // Lock execution
   tumblrFeed.textContent = "Rolling the dice...";
   
-  const url = tumblrJsonUrl({ start:0, num:1 });
   try {
+    const url = tumblrJsonUrl({ start:0, num:1 });
     const raw = await fetchRaw(url);
     const data = parseTumblrJsonp(raw);
     const total = Number(data.posts_total);
     
-    if(!total) return;
+    if(!total) throw new Error("No posts found");
 
     const randomStart = Math.floor(Math.random() * total);
     
@@ -926,10 +936,17 @@ async function fetchRandomPost(){
     const post = randData.posts[0];
     
     if(post){
+      // Clear the tag filter so we don't try to load the random post inside a filtered category
+      currentTag = ""; 
+      document.querySelectorAll(".catBtn").forEach(b => b.classList.remove("active"));
+      document.querySelector(".catBtn[data-tag='']").classList.add("active");
+
       window.location.hash = prettyHashForPost(post.id, post["regular-title"] || "random");
     }
   } catch(e) {
-    tumblrFeed.textContent = "Failed to find a random memory.";
+    tumblrFeed.textContent = "Failed to find a random memory. Try again.";
+  } finally {
+    tumblrLoading = false;
   }
 }
 
@@ -957,6 +974,59 @@ function hijackGoodreadsLinks() {
     attempts++;
     if (attempts > 40) clearInterval(interval);
   }, 100);
+}
+
+/* =========================================================
+   CUSTOM CONTEXT MENU
+========================================================= */
+
+function initContextMenu() {
+  const ctxMenu = document.getElementById("yzyContextMenu");
+  if (!ctxMenu) return;
+
+  document.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+    ctxMenu.style.display = "flex";
+    
+    // Ensure the menu doesn't go off screen
+    const x = Math.min(e.clientX, window.innerWidth - ctxMenu.offsetWidth);
+    const y = Math.min(e.clientY, window.innerHeight - ctxMenu.offsetHeight);
+    
+    ctxMenu.style.left = x + "px";
+    ctxMenu.style.top = y + "px";
+  });
+
+  // Hide when clicking outside
+  document.addEventListener("click", (e) => {
+    if (!ctxMenu.contains(e.target)) {
+      ctxMenu.style.display = "none";
+    }
+  });
+
+  // Hide on scroll
+  window.addEventListener("scroll", () => {
+    ctxMenu.style.display = "none";
+  }, { passive: true });
+
+  // Route clicks to top nav buttons programmatically
+  ctxMenu.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      ctxMenu.style.display = "none"; // hide immediately
+      
+      const action = btn.dataset.action;
+      
+      if (action === "top") {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (action === "random") {
+        fetchRandomPost();
+      } else if (action === "tag") {
+        const tag = btn.dataset.tag;
+        // Trigger a click on the real navigation button to keep states synced
+        const navBtn = document.querySelector(`.catBtn[data-tag='${tag}']`);
+        if (navBtn) navBtn.click();
+      }
+    });
+  });
 }
 
 /* =========================================================
@@ -990,6 +1060,7 @@ function init(){
 
   hijackGoodreadsLinks();
   setupCategoryNav();
+  initContextMenu();
 }
 
 if(document.readyState === "loading"){
