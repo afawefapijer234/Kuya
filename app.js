@@ -106,10 +106,18 @@ function prettyHashForPost(postId, title){
   return `#/${slug}--${postId}`;
 }
 
+// Parses specific post URLs
 function parsePrettyHash(){
   const h = location.hash || "";
   const m = h.match(/^#\/.+--(\d+)$/);
   return m ? m[1] : null;
+}
+
+// Parses simple category tags (Deep Linking)
+function getTagFromHash() {
+  const h = (location.hash || "").replace("#", "");
+  const validTags = ["thoughts", "design", "poly", "inspo"];
+  return validTags.includes(h) ? h : null;
 }
 
 function getSiteBaseUrl(){
@@ -140,7 +148,6 @@ async function copyToClipboard(text){
   }
 }
 
-// --- TITLE EXTRACTION HELPER ---
 function extractTitleFromBody(html) {
   if (!html) return { title: null, body: html };
 
@@ -839,7 +846,6 @@ async function loadTumblrFeed(){
     const raw = await fetchRaw(url);
     const data = parseTumblrJsonp(raw);
 
-    // FIX: Using ["posts-total"] which is the real Tumblr property
     const pt = data["posts-total"] || data.posts_total;
     tumblrTotal = Number.isFinite(Number(pt)) ? Number(pt) : tumblrTotal;
 
@@ -857,8 +863,9 @@ async function loadTumblrFeed(){
     if(activePostId){
       const backBtn = document.createElement("button");
       backBtn.className = "yzyBackBtn";
-      backBtn.textContent = "[ ← back to feed ]";
+      backBtn.textContent = "← back to feed";
       backBtn.addEventListener("click", () => {
+        // Just empty the hash, which naturally returns to the previous feed state
         window.location.hash = "";
       });
       tumblrFeed.appendChild(backBtn);
@@ -885,8 +892,32 @@ async function loadTumblrFeed(){
   }
 }
 
+// ---------------------------------------------------------
+// NEW: Deep Linking Routing
+// ---------------------------------------------------------
 function onRouteChange(){
   tumblrStart = 0;
+  
+  const hashTag = getTagFromHash();
+  const postId = parsePrettyHash();
+
+  if (hashTag) {
+    // If the URL is exactly domain.com/#thoughts
+    currentTag = hashTag;
+    
+    // Visually update the active button in the top nav
+    document.querySelectorAll(".catBtn").forEach(b => b.classList.remove("active"));
+    const activeBtn = document.querySelector(`.catBtn[data-tag='${hashTag}']`);
+    if (activeBtn) activeBtn.classList.add("active");
+    
+  } else if (!postId) {
+    // If there is NO hash (or an invalid one) and NO post ID, default to "newest"
+    currentTag = "";
+    document.querySelectorAll(".catBtn").forEach(b => b.classList.remove("active"));
+    const activeBtn = document.querySelector(`.catBtn[data-tag='']`);
+    if (activeBtn) activeBtn.classList.add("active");
+  }
+
   loadTumblrFeed().catch(() => {});
 }
 
@@ -905,17 +936,16 @@ function setupCategoryNav(){
          return;
       }
 
-      buttons.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-
-      currentTag = btn.dataset.tag || "";
+      const tag = btn.dataset.tag || "";
       
-      tumblrStart = 0;
-      tumblrTotal = null;
-      
-      history.pushState("", document.title, window.location.pathname + window.location.search);
-
-      loadTumblrFeed();
+      if (tag) {
+        // Appending the tag to the URL hash triggers onRouteChange() automatically
+        window.location.hash = tag; 
+      } else {
+        // Clearing the category (clicking "newest"). PushState doesn't trigger hashchange, so we call it manually
+        history.pushState("", document.title, window.location.pathname + window.location.search);
+        onRouteChange(); 
+      }
     });
   });
 }
@@ -931,7 +961,6 @@ async function fetchRandomPost(){
     const raw = await fetchRaw(url);
     const data = parseTumblrJsonp(raw);
     
-    // FIX: Accessing the correct hyphenated property
     const pt = data["posts-total"] || data.posts_total;
     const total = Number(pt);
     
@@ -1026,8 +1055,8 @@ function initContextMenu() {
         fetchRandomPost();
       } else if (action === "tag") {
         const tag = btn.dataset.tag;
-        const navBtn = document.querySelector(`.catBtn[data-tag='${tag}']`);
-        if (navBtn) navBtn.click();
+        // Triggers the URL change natively
+        if (tag) window.location.hash = tag;
       }
     });
   });
