@@ -180,11 +180,11 @@ body:not(.is-newest) .topbar:hover .topbarRight {
 .tumblrHeadLeft { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; } 
 .tumblrMeta { display: inline-flex; align-items: center; gap: 10px; }
 
-/* Centered View for when a post is clicked open */
+/* Centered View + More Space for Single Posts */
 .tumblrPost.single-post-view .tumblrHead {
   align-items: center;
   text-align: center;
-  margin-bottom: 12px;
+  margin-bottom: 36px; /* Added much more breathing room here */
 }
 .tumblrPost.single-post-view .tumblrHeadLeft {
   align-items: center;
@@ -246,8 +246,8 @@ body:not(.is-newest) .topbar:hover .topbarRight {
 .tumblrPager { justify-content: space-between; gap: 12px; padding: 18px 0 4px; margin-top: 14px; }
 .tumblrPager .spacer { flex: 1; }
 .tumblrPager button { 
-  background: rgba(255, 255, 255, 0.4); /* Translucent */
-  backdrop-filter: blur(12px); /* Glass blur */
+  background: rgba(255, 255, 255, 0.4); 
+  backdrop-filter: blur(12px); 
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(0,0,0,.08); 
   border-radius: 999px; 
@@ -264,26 +264,20 @@ body:not(.is-newest) .topbar:hover .topbarRight {
 }
 .tumblrPager button[disabled] { opacity: 0; pointer-events: none; }
 
-/* --- FROSTED TERMINAL BACK BUTTON --- */
+/* --- CLEAN TEXT BACK BUTTON --- */
 .yzyBackBtn {
   display: inline-block;
-  margin-bottom: 24px;
-  color: var(--text);
+  margin-bottom: 32px;
+  color: var(--muted);
   font-size: 13px;
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0,0,0,0.06);
-  padding: 8px 16px;
-  border-radius: 999px;
-  box-shadow: 0 4px 12px rgba(0,0,0,.02);
-  transition: all 0.2s ease;
+  background: none;
+  border: none;
+  padding: 0;
+  transition: color 0.2s ease;
+  cursor: pointer;
 }
 .yzyBackBtn:hover {
-  background: rgba(255, 255, 255, 0.9);
   color: var(--accent);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(0,0,0,.05);
 }
 
 /* --- FROSTED CONTEXT MENU --- */
@@ -291,13 +285,13 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   position: fixed;
   display: none; 
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.65); /* Glass Background */
-  backdrop-filter: blur(20px); /* Heavy Blur */
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px); 
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 12px; /* Soft rounded menu */
-  box-shadow: 0 12px 32px rgba(0,0,0,0.08); /* Float shadow */
-  padding: 8px; /* Inner padding for pill buttons */
+  border-radius: 12px; 
+  box-shadow: 0 12px 32px rgba(0,0,0,0.08); 
+  padding: 8px; 
   z-index: 9999;
   min-width: 160px;
 }
@@ -306,13 +300,13 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   padding: 8px 16px;
   color: var(--text);
   font-size: 13px;
-  border-radius: 8px; /* Inner Pill shape */
+  border-radius: 8px; 
   transition: background 0.2s, transform 0.2s, color 0.2s;
 }
 .yzy-context-menu button:hover {
-  background: rgba(0, 0, 0, 0.04); /* Subtle darkening on hover */
+  background: rgba(0, 0, 0, 0.04); 
   color: var(--accent);
-  transform: translateX(4px); /* Cute slide-right interaction */
+  transform: translateX(4px); 
 }
 
 /* --- LIGHTBOX --- */
@@ -321,7 +315,6 @@ body:not(.is-newest) .topbar:hover .topbarRight {
 #imgLightbox .lbInner { max-width: min(1200px, 96vw); max-height: 92vh; display: grid; gap: 10px; justify-items: end; }
 #imgLightbox img { max-width: min(1200px, 96vw); max-height: 88vh; border-radius: 14px; background: rgba(255,255,255,.04); }
 
-/* Frosted Lightbox Close Button */
 #imgLightbox .lbClose { 
   background: rgba(255,255,255,.14); 
   backdrop-filter: blur(12px);
@@ -340,8 +333,7 @@ body:not(.is-newest) .topbar:hover .topbarRight {
 .goodreadsWidget .gr_grid_book_container { display: inline-block !important; width: 39px !important; height: 60px !important; margin: 0 10px 10px 0 !important; padding: 0 !important; float: none !important; }
 .goodreadsWidget .gr_grid_book_container img { width: 39px !important; height: 60px !important; object-fit: cover; border-radius: 6px; display: block; }
 
-
-/* --- THOUGHTS GRID (Frosted Glass / Soft UI) --- */
+/* --- THOUGHTS GRID (Frosted Glass) --- */
 .tumblrFeed.grid-mode {
   display: grid; 
   grid-template-columns: repeat(3, 1fr); 
@@ -352,11 +344,11 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   aspect-ratio: 1 / 1; 
   margin-bottom: 0; 
   padding: 16px;
-  background: rgba(255, 255, 255, 0.4); /* Translucent background */
-  backdrop-filter: blur(16px); /* Heavy blur on all sides */
+  background: rgba(255, 255, 255, 0.4); 
+  backdrop-filter: blur(16px); 
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(0, 0, 0, 0.04); /* Very subtle border */
-  border-radius: 16px; /* Rounded corners brought back */
+  border: 1px solid rgba(0, 0, 0, 0.04); 
+  border-radius: 16px; 
   box-shadow: 0 8px 24px rgba(0,0,0,0.03); 
   overflow: hidden; 
   position: relative;
@@ -364,7 +356,6 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Gentle lift and opacity increase on hover */
 .tumblrFeed.grid-mode .tumblrPost:hover {
   transform: translateY(-2px); 
   background: rgba(255, 255, 255, 0.7);
@@ -376,20 +367,17 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   padding-top: 16px;
 }
 
-/* Brought back the bottom fade gradient */
 .tumblrFeed.grid-mode .tumblrPost::after {
   content: "";
   position: absolute;
   bottom: 0; left: 0; right: 0;
   height: 54px;
-  /* Fades into a translucent off-white to match the glass */
   background: linear-gradient(to bottom, rgba(251,250,247,0), rgba(251,250,247,0.95) 90%);
   pointer-events: none; 
   border-bottom-left-radius: 16px;
   border-bottom-right-radius: 16px;
 }
 
-/* Make grid mode titles slightly smaller */
 .tumblrFeed.grid-mode .tumblrPostTitle {
   font-size: 15px; 
   font-weight: 600;
@@ -406,7 +394,18 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   margin-top: 16px;
 }
 
-/* --- MOBILE --- */
+/* --- RESPONSIVE & MOBILE --- */
+@media (max-width: 768px) {
+  /* Permanently show faded UI elements on tablets/phones since hover doesn't exist */
+  body:not(.is-newest) .inlineSocials,
+  body:not(.is-newest) .statusRow,
+  body:not(.is-newest) .categoryNav,
+  body:not(.is-newest) .topbarRight {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+}
+
 @media (max-width: 640px){ 
   .tumblrPhotoGrid { grid-template-columns: 1fr; } 
   .tumblrFeed.grid-mode { grid-template-columns: repeat(2, 1fr); } 
