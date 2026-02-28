@@ -540,7 +540,7 @@ let tumblrLoading = false;
 let currentTag = ""; 
 
 function getActivePostId(){
-  const qs = new URLSearchParams(location.search);
+  const qs = newSearchParams(location.search);
   const postFromQuery = qs.get("post");
   const postFromHash = parsePrettyHash();
   return postFromQuery || postFromHash;
@@ -778,7 +778,6 @@ function renderTumblrPager(posts){
     const forwardBtn = document.createElement("button");
     forwardBtn.type = "button";
     forwardBtn.textContent = "forward in time";
-    // We NO LONGER set disabled on load. The CSS/JS handles loading clicks.
     forwardBtn.addEventListener("click", () => {
       if(tumblrLoading) return;
       tumblrStart = Math.max(0, tumblrStart - TUMBLR_PAGE_SIZE);
@@ -799,7 +798,6 @@ function renderTumblrPager(posts){
     const backBtn = document.createElement("button");
     backBtn.type = "button";
     backBtn.textContent = "back in time";
-    // We NO LONGER set disabled on load. The CSS/JS handles loading clicks.
     backBtn.addEventListener("click", () => {
       if(tumblrLoading) return;
       tumblrStart = tumblrStart + TUMBLR_PAGE_SIZE;
@@ -831,9 +829,8 @@ async function loadTumblrFeed(){
   }
 
   try{
-    if(tumblrStart === 0) {
-      tumblrFeed.innerHTML = '<div class="feedMessage">Loading...</div>';
-    }
+    // UNCONDITIONALLY clear the feed and show loading to prevent stacking
+    tumblrFeed.innerHTML = '<div class="feedMessage">Loading...</div>';
 
     const url = tumblrJsonUrl({
       start: tumblrStart,
@@ -850,7 +847,8 @@ async function loadTumblrFeed(){
 
     const posts = Array.isArray(data?.posts) ? data.posts : [];
     
-    if(tumblrStart === 0) tumblrFeed.innerHTML = "";
+    // UNCONDITIONALLY clear the "Loading..." message before drawing posts
+    tumblrFeed.innerHTML = "";
 
     // --- GRACEFUL EMPTY STATE FIX ---
     if(!posts.length){
@@ -858,8 +856,6 @@ async function loadTumblrFeed(){
          tumblrFeed.innerHTML = '<div class="feedMessage">No posts found in this collection.</div>';
       } else {
          tumblrFeed.innerHTML = '<div class="feedMessage">You have reached the very beginning of the archive.</div>';
-         // Still render pager so they can click "forward"
-         // Pass empty array so it correctly calculates that we can't go backwards
       }
       return;
     }
@@ -893,8 +889,7 @@ async function loadTumblrFeed(){
   }finally{
     tumblrLoading = false;
     
-    // GPT Fix: Re-render the pager AFTER the loading state is flipped to false
-    // so the buttons aren't permanently locked. 
+    // Renders the pager based on what is currently loaded on screen
     if (!getActivePostId()) {
       const postsOnScreen = Array.from(document.querySelectorAll(".tumblrPost"));
       renderTumblrPager(postsOnScreen);
