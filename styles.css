@@ -180,11 +180,11 @@ body:not(.is-newest) .topbar:hover .topbarRight {
 .tumblrHeadLeft { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; } 
 .tumblrMeta { display: inline-flex; align-items: center; gap: 10px; }
 
-/* Centered View for when a post is clicked open */
+/* Centered View + More Space for Single Posts */
 .tumblrPost.single-post-view .tumblrHead {
   align-items: center;
   text-align: center;
-  margin-bottom: 36px; /* Breathing room */
+  margin-bottom: 36px; /* Added much more breathing room here */
 }
 .tumblrPost.single-post-view .tumblrHeadLeft {
   align-items: center;
@@ -235,6 +235,17 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   border-radius: 14px; 
   margin: 12px 0; 
   cursor: zoom-in; 
+  
+  /* --- FEATHERED / SOFT IMAGE EDGES --- */
+  /* This creates a 4-sided gradient mask so the edges gently fade into the background */
+  -webkit-mask-image: 
+    linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, black 4%, black 96%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: 
+    linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, black 4%, black 96%, transparent 100%);
+  mask-composite: intersect;
 }
 
 .tumblrPhotoGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 12px 0; }
@@ -263,7 +274,6 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   box-shadow: 0 6px 16px rgba(0,0,0,.05);
 }
 
-/* FIX: Don't make disabled buttons completely invisible */
 .tumblrPager button[disabled] { 
   opacity: .35; 
   pointer-events: none; 
