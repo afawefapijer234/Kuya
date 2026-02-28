@@ -181,7 +181,6 @@ function extractTitleFromBody(html) {
   return { title: null, body: html };
 }
 
-// Dynamically updates SEO and tab titles for modern crawlers and browsers
 function updateMetaTags(titleText, descText){
   const base = "KUYA";
   const t = String(titleText || "").trim();
@@ -780,7 +779,7 @@ function buildTumblrPostElement(p){
   return post;
 }
 
-// --- NEW INFINITE LOAD / PAGER LOGIC ---
+// --- BULLETPROOF PAGER LOGIC ---
 function renderTumblrPager(fetchedPosts){
   if(!tumblrFeed) return;
 
@@ -788,10 +787,13 @@ function renderTumblrPager(fetchedPosts){
   if(getActivePostId()) return;
 
   const isGridMode = (currentTag === "thoughts");
+  
+  // Safe math: Just check if the current page actually has content
   const numPosts = Array.isArray(fetchedPosts) ? fetchedPosts.length : 0;
 
   if (isGridMode) {
-    if (numPosts < TUMBLR_PAGE_SIZE) return; 
+    // If we get zero posts back in Grid Mode, we have reached the end of the archive
+    if (numPosts === 0) return; 
 
     const pager = document.createElement("div");
     pager.className = "tumblrPager";
@@ -810,15 +812,16 @@ function renderTumblrPager(fetchedPosts){
     tumblrFeed.appendChild(pager);
 
   } else {
+    // Bulletproof logic: Always show the back button if there are posts on the screen.
+    // If the user clicks it and hits an empty page, the "beginning of archive" screen handles it safely.
     const canForward = tumblrStart > 0;
-    const canBack = numPosts === TUMBLR_PAGE_SIZE;
+    const canBack = numPosts > 0; 
 
     if(!canForward && !canBack) return;
 
     const pager = document.createElement("div");
     pager.className = "tumblrPager";
 
-    // BACK BUTTON (LEFT)
     if(canBack){
       const backBtn = document.createElement("button");
       backBtn.type = "button";
@@ -839,7 +842,6 @@ function renderTumblrPager(fetchedPosts){
     mid.className = "spacer";
     pager.appendChild(mid);
 
-    // FORWARD BUTTON (RIGHT)
     if(canForward){
       const forwardBtn = document.createElement("button");
       forwardBtn.type = "button";
@@ -912,8 +914,16 @@ async function loadTumblrFeed(){
       if(tumblrStart === 0) {
          tumblrFeed.innerHTML = '<div class="feedMessage">No posts found in this collection.</div>';
       } else if (!isLoadMore) {
+         // Standard feed hit the end. It renders the 'forward' button so you aren't trapped!
          tumblrFeed.innerHTML = '<div class="feedMessage">You have reached the very beginning of the archive.</div>';
          renderTumblrPager([]); 
+      } else {
+         // Grid load more hit the end.
+         const endMsg = document.createElement("div");
+         endMsg.className = "feedMessage";
+         endMsg.textContent = "End of archive.";
+         endMsg.style.gridColumn = "1 / -1";
+         tumblrFeed.appendChild(endMsg);
       }
       return;
     }
@@ -926,7 +936,6 @@ async function loadTumblrFeed(){
       
       tumblrFeed.appendChild(el);
 
-      // --- MOVED BACK BUTTON BELOW THE POST ---
       const backBtn = document.createElement("button");
       backBtn.className = "yzyBackBtn";
       backBtn.textContent = "← back to feed";
@@ -939,12 +948,10 @@ async function loadTumblrFeed(){
       const postTitle = inner.title || deriveTitle(p, inner);
       const postDesc = stripHtml(inner.html).substring(0, 160) + "...";
       
-      // Updates browser tab and SEO tags dynamically
       updateMetaTags(postTitle, postDesc);
       return;
     }
 
-    // Reset meta tags to default if we are on the main feed
     updateMetaTags("", "");
 
     posts.forEach(p => tumblrFeed.appendChild(buildTumblrPostElement(p)));
