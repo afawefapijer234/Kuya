@@ -236,15 +236,15 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   margin: 12px 0; 
   cursor: zoom-in; 
   
-  /* --- FEATHERED / SOFT IMAGE EDGES --- */
-  /* This creates a 4-sided gradient mask so the edges gently fade into the background */
+  /* --- SUBTLER FEATHERED / SOFT IMAGE EDGES --- */
+  /* Reduced from 4% to 1.5% for a tighter edge blur */
   -webkit-mask-image: 
-    linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%),
-    linear-gradient(to bottom, transparent 0%, black 4%, black 96%, transparent 100%);
+    linear-gradient(to right, transparent 0%, black 1.5%, black 98.5%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, black 1.5%, black 98.5%, transparent 100%);
   -webkit-mask-composite: source-in;
   mask-image: 
-    linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%),
-    linear-gradient(to bottom, transparent 0%, black 4%, black 96%, transparent 100%);
+    linear-gradient(to right, transparent 0%, black 1.5%, black 98.5%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, black 1.5%, black 98.5%, transparent 100%);
   mask-composite: intersect;
 }
 
@@ -281,10 +281,11 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   box-shadow: none;
 }
 
-/* --- CLEAN TEXT BACK BUTTON --- */
+/* --- CLEAN TEXT BACK BUTTON (Now Centered at Bottom) --- */
 .yzyBackBtn {
-  display: inline-block;
-  margin-bottom: 32px;
+  display: block;
+  margin: 40px auto 32px;
+  text-align: center;
   color: var(--muted);
   font-size: 13px;
   background: none;
@@ -413,7 +414,6 @@ body:not(.is-newest) .topbar:hover .topbarRight {
 
 /* --- RESPONSIVE & MOBILE --- */
 @media (max-width: 768px) {
-  /* Permanently show faded UI elements on tablets/phones since hover doesn't exist */
   body:not(.is-newest) .inlineSocials,
   body:not(.is-newest) .statusRow,
   body:not(.is-newest) .categoryNav,
