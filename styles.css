@@ -7,7 +7,11 @@
 }
 
 *{ box-sizing:border-box; }
-html,body{ height:100%; }
+
+/* FIX: Set fallback background to prevent white flashes on mobile scroll */
+html { 
+  background-color: #eae9e4; 
+}
 
 body{
   margin:0;
@@ -22,9 +26,7 @@ body{
 
 .blurBorder {
   position: fixed;
-  inset: 0; 
-  width: 100%;
-  height: 100vh;
+  inset: 0; /* FIX: inset 0 perfectly covers the screen without triggering the 100vh mobile jump bug */
   z-index: 50; 
   pointer-events: none; 
   
@@ -64,6 +66,10 @@ a:hover, button:hover {
 }
 
 .topbar{
+  /* FIX: Popped the nav above the blur layer */
+  position: relative;
+  z-index: 100; 
+
   max-width: 700px;
   margin: 0 auto;
   padding: 26px 18px 18px;
@@ -121,7 +127,19 @@ a:hover, button:hover {
 @keyframes caretBlink{ 50%{ opacity: 0; } }
 @media (prefers-reduced-motion: reduce){ .statusMsg::after{ animation: none; } }
 
-.categoryNav { gap: 12px; flex-wrap: wrap; }
+/* FIX: Forces nav into 1 line, allows invisible side-scrolling if screen is microscopic */
+.categoryNav { 
+  gap: 12px; 
+  flex-wrap: nowrap; 
+  white-space: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Hides scrollbar in Firefox */
+}
+.categoryNav::-webkit-scrollbar {
+  display: none; /* Hides scrollbar in Chrome/Safari/Brave */
+}
+
 .catLabel { font-style: italic; opacity: 0.7; }
 .catBtn.active { color: var(--accent); }
 
@@ -235,17 +253,6 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   border-radius: 14px; 
   margin: 12px 0; 
   cursor: zoom-in; 
-  
-  /* --- SUBTLER FEATHERED / SOFT IMAGE EDGES --- */
-  /* Reduced from 4% to 1.5% for a tighter edge blur */
-  -webkit-mask-image: 
-    linear-gradient(to right, transparent 0%, black 1.5%, black 98.5%, transparent 100%),
-    linear-gradient(to bottom, transparent 0%, black 1.5%, black 98.5%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-image: 
-    linear-gradient(to right, transparent 0%, black 1.5%, black 98.5%, transparent 100%),
-    linear-gradient(to bottom, transparent 0%, black 1.5%, black 98.5%, transparent 100%);
-  mask-composite: intersect;
 }
 
 .tumblrPhotoGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 12px 0; }
@@ -414,10 +421,10 @@ body:not(.is-newest) .topbar:hover .topbarRight {
 
 /* --- RESPONSIVE & MOBILE --- */
 @media (max-width: 768px) {
-  body:not(.is-newest) .inlineSocials,
-  body:not(.is-newest) .statusRow,
-  body:not(.is-newest) .categoryNav,
-  body:not(.is-newest) .topbarRight {
+  body:not(.is-newest):not(.is-single-post) .inlineSocials,
+  body:not(.is-newest):not(.is-single-post) .statusRow,
+  body:not(.is-newest):not(.is-single-post) .categoryNav,
+  body:not(.is-newest):not(.is-single-post) .topbarRight {
     opacity: 1 !important;
     pointer-events: auto !important;
   }
@@ -439,7 +446,8 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   }
 
   .topbarRight { min-width: auto; }
-  .categoryNav { gap: 14px; margin-top: 8px; }
+  /* FIX: Margins adjusted to fit single line nav properly */
+  .categoryNav { gap: 10px; margin-top: 8px; } 
   
   .tumblrFeed.grid-mode { grid-template-columns: repeat(2, 1fr); } 
 }
