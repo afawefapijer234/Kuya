@@ -8,7 +8,7 @@
 
 *{ box-sizing:border-box; }
 
-/* FIX: Set fallback background to prevent white flashes on mobile scroll */
+/* Fallback background to prevent white flashes on mobile scroll */
 html { 
   background-color: #eae9e4; 
 }
@@ -26,9 +26,12 @@ body{
 
 .blurBorder {
   position: fixed;
-  inset: 0; /* FIX: inset 0 perfectly covers the screen without triggering the 100vh mobile jump bug */
+  top: 0; left: 0; right: 0;
+  height: 100vh; /* Fallback for older browsers */
+  height: 100dvh; /* FIX: Dynamic viewport height stops the mobile address bar jump */
   z-index: 50; 
   pointer-events: none; 
+  transform: translate3d(0, 0, 0); /* FIX: Forces GPU hardware acceleration to stop stuttering */
   
   backdrop-filter: blur(6px); 
   -webkit-backdrop-filter: blur(6px);
@@ -66,9 +69,8 @@ a:hover, button:hover {
 }
 
 .topbar{
-  /* FIX: Popped the nav above the blur layer */
   position: relative;
-  z-index: 100; 
+  z-index: 100; /* Keeps Nav fully clickable above the blur */
 
   max-width: 700px;
   margin: 0 auto;
@@ -127,17 +129,22 @@ a:hover, button:hover {
 @keyframes caretBlink{ 50%{ opacity: 0; } }
 @media (prefers-reduced-motion: reduce){ .statusMsg::after{ animation: none; } }
 
-/* FIX: Forces nav into 1 line, allows invisible side-scrolling if screen is microscopic */
 .categoryNav { 
   gap: 12px; 
   flex-wrap: nowrap; 
   white-space: nowrap;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; /* Hides scrollbar in Firefox */
+  scrollbar-width: none; 
+  padding-right: 24px; /* Gives the scroll room to breathe at the edge */
 }
 .categoryNav::-webkit-scrollbar {
-  display: none; /* Hides scrollbar in Chrome/Safari/Brave */
+  display: none; 
+}
+
+/* FIX: Stops the random button from getting squished and cut off */
+.catBtn {
+  flex-shrink: 0; 
 }
 
 .catLabel { font-style: italic; opacity: 0.7; }
@@ -160,7 +167,7 @@ body:not(.is-newest) .categoryNav,
 body:not(.is-newest) .topbarRight {
   opacity: 0;
   pointer-events: none; 
-  transition: opacity 1.5s ease; /* SLOW FADE OUT */
+  transition: opacity 1.5s ease; 
 }
 
 body:not(.is-newest) .topbar:hover .inlineSocials,
@@ -169,14 +176,14 @@ body:not(.is-newest) .topbar:hover .categoryNav,
 body:not(.is-newest) .topbar:hover .topbarRight {
   opacity: 1;
   pointer-events: auto;
-  transition: opacity 0.2s ease; /* FAST FADE IN */
+  transition: opacity 0.2s ease; 
 }
 
 /* ========================================================= */
 
-.wrap { max-width: 700px; margin: 0 auto; padding: 0 18px 60px; }
+/* FIX: Added padding-top 24px to give space between nav and grid */
+.wrap { max-width: 700px; margin: 0 auto; padding: 24px 18px 60px; }
 
-/* Clean UI Message Styling */
 .feedMessage {
   color: var(--muted);
   text-align: center;
@@ -193,22 +200,19 @@ body:not(.is-newest) .topbar:hover .topbarRight {
 .tumblrPost { padding: 16px 0; }
 .tumblrPost:first-child { padding-top: 6px; }
 
-/* Default Left Alignment */
 .tumblrHead { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
 .tumblrHeadLeft { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; } 
 .tumblrMeta { display: inline-flex; align-items: center; gap: 10px; }
 
-/* Centered View + More Space for Single Posts */
 .tumblrPost.single-post-view .tumblrHead {
   align-items: center;
   text-align: center;
-  margin-bottom: 36px; /* Added much more breathing room here */
+  margin-bottom: 36px; 
 }
 .tumblrPost.single-post-view .tumblrHeadLeft {
   align-items: center;
 }
 
-/* Thicker Titles */
 .tumblrPostTitle {
   display: inline-block;
   font-size: 20px; 
@@ -288,7 +292,7 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   box-shadow: none;
 }
 
-/* --- CLEAN TEXT BACK BUTTON (Now Centered at Bottom) --- */
+/* --- CLEAN TEXT BACK BUTTON --- */
 .yzyBackBtn {
   display: block;
   margin: 40px auto 32px;
@@ -446,7 +450,6 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   }
 
   .topbarRight { min-width: auto; }
-  /* FIX: Margins adjusted to fit single line nav properly */
   .categoryNav { gap: 10px; margin-top: 8px; } 
   
   .tumblrFeed.grid-mode { grid-template-columns: repeat(2, 1fr); } 
