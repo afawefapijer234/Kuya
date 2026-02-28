@@ -540,7 +540,7 @@ let tumblrLoading = false;
 let currentTag = ""; 
 
 function getActivePostId(){
-  const qs = newSearchParams(location.search);
+  const qs = new URLSearchParams(location.search); // <-- FIX APPLIED HERE
   const postFromQuery = qs.get("post");
   const postFromHash = parsePrettyHash();
   return postFromQuery || postFromHash;
@@ -757,7 +757,6 @@ function buildTumblrPostElement(p){
   return post;
 }
 
-// --- FIXED PAGER LOGIC ---
 function renderTumblrPager(posts){
   if(!tumblrFeed) return;
 
@@ -829,7 +828,6 @@ async function loadTumblrFeed(){
   }
 
   try{
-    // UNCONDITIONALLY clear the feed and show loading to prevent stacking
     tumblrFeed.innerHTML = '<div class="feedMessage">Loading...</div>';
 
     const url = tumblrJsonUrl({
@@ -847,10 +845,8 @@ async function loadTumblrFeed(){
 
     const posts = Array.isArray(data?.posts) ? data.posts : [];
     
-    // UNCONDITIONALLY clear the "Loading..." message before drawing posts
     tumblrFeed.innerHTML = "";
 
-    // --- GRACEFUL EMPTY STATE FIX ---
     if(!posts.length){
       if(tumblrStart === 0) {
          tumblrFeed.innerHTML = '<div class="feedMessage">No posts found in this collection.</div>';
@@ -889,7 +885,6 @@ async function loadTumblrFeed(){
   }finally{
     tumblrLoading = false;
     
-    // Renders the pager based on what is currently loaded on screen
     if (!getActivePostId()) {
       const postsOnScreen = Array.from(document.querySelectorAll(".tumblrPost"));
       renderTumblrPager(postsOnScreen);
