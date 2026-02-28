@@ -779,7 +779,6 @@ function buildTumblrPostElement(p){
   return post;
 }
 
-// --- BULLETPROOF PAGER LOGIC ---
 function renderTumblrPager(fetchedPosts){
   if(!tumblrFeed) return;
 
@@ -788,11 +787,9 @@ function renderTumblrPager(fetchedPosts){
 
   const isGridMode = (currentTag === "thoughts");
   
-  // Safe math: Just check if the current page actually has content
   const numPosts = Array.isArray(fetchedPosts) ? fetchedPosts.length : 0;
 
   if (isGridMode) {
-    // If we get zero posts back in Grid Mode, we have reached the end of the archive
     if (numPosts === 0) return; 
 
     const pager = document.createElement("div");
@@ -812,8 +809,6 @@ function renderTumblrPager(fetchedPosts){
     tumblrFeed.appendChild(pager);
 
   } else {
-    // Bulletproof logic: Always show the back button if there are posts on the screen.
-    // If the user clicks it and hits an empty page, the "beginning of archive" screen handles it safely.
     const canForward = tumblrStart > 0;
     const canBack = numPosts > 0; 
 
@@ -877,6 +872,13 @@ async function loadTumblrFeed(){
     document.body.classList.remove("is-newest");
   }
 
+  // --- ADDED: MOBILE HIDING LOGIC FLAG ---
+  if (activePostId) {
+    document.body.classList.add("is-single-post");
+  } else {
+    document.body.classList.remove("is-single-post");
+  }
+
   try{
     if (!isLoadMore) {
       tumblrFeed.innerHTML = '<div class="feedMessage">Loading...</div>';
@@ -914,11 +916,9 @@ async function loadTumblrFeed(){
       if(tumblrStart === 0) {
          tumblrFeed.innerHTML = '<div class="feedMessage">No posts found in this collection.</div>';
       } else if (!isLoadMore) {
-         // Standard feed hit the end. It renders the 'forward' button so you aren't trapped!
          tumblrFeed.innerHTML = '<div class="feedMessage">You have reached the very beginning of the archive.</div>';
          renderTumblrPager([]); 
       } else {
-         // Grid load more hit the end.
          const endMsg = document.createElement("div");
          endMsg.className = "feedMessage";
          endMsg.textContent = "End of archive.";
