@@ -8,7 +8,8 @@ const YT_CHANNEL_ID = "UCuDJUj1szS87hLRjXQKnmaA";
 const YT_CHANNEL_FALLBACK_URL = "https://www.youtube.com/@houseoftakuya";
 
 const TUMBLR_BLOG = "takuyakitano";
-const TUMBLR_PAGE_SIZE = 10;
+// Changed to 12 so it is perfectly divisible by the 3-column grid
+const TUMBLR_PAGE_SIZE = 12; 
 
 const GOODREADS_PROFILE_URL = "https://www.goodreads.com/takuyakitano"; 
 
@@ -540,7 +541,7 @@ let tumblrLoading = false;
 let currentTag = ""; 
 
 function getActivePostId(){
-  const qs = new URLSearchParams(location.search); // <-- FIX APPLIED HERE
+  const qs = new URLSearchParams(location.search);
   const postFromQuery = qs.get("post");
   const postFromHash = parsePrettyHash();
   return postFromQuery || postFromHash;
@@ -757,55 +758,83 @@ function buildTumblrPostElement(p){
   return post;
 }
 
-function renderTumblrPager(posts){
+// --- NEW INFINITE LOAD / PAGER LOGIC ---
+function renderTumblrPager(fetchedPosts){
   if(!tumblrFeed) return;
 
+  // Clear existing pagers
   tumblrFeed.querySelectorAll(".tumblrPager").forEach(n => n.remove());
   if(getActivePostId()) return;
 
-  const canForward = tumblrStart > 0;
-  
-  const numPosts = Array.isArray(posts) ? posts.length : 0;
-  const canBack = numPosts > 0;
+  const isGridMode = (currentTag === "thoughts");
+  const numPosts = Array.isArray(fetchedPosts) ? fetchedPosts.length : 0;
 
-  if(!canForward && !canBack) return;
+  if (isGridMode) {
+    // We only show the Load More button if the current fetch returned a full page.
+    // If it didn't, we've hit the end of the archive.
+    if (numPosts < TUMBLR_PAGE_SIZE) return; 
 
-  const pager = document.createElement("div");
-  pager.className = "tumblrPager";
+    const pager = document.createElement("div");
+    pager.className = "tumblrPager";
+    // Center the load more button inline so it looks clean in the grid
+    pager.style.justifyContent = "center"; 
 
-  if(canForward){
-    const forwardBtn = document.createElement("button");
-    forwardBtn.type = "button";
-    forwardBtn.textContent = "forward in time";
-    forwardBtn.addEventListener("click", () => {
-      if(tumblrLoading) return;
-      tumblrStart = Math.max(0, tumblrStart - TUMBLR_PAGE_SIZE);
-      loadTumblrFeed().catch(() => {});
-    });
-    pager.appendChild(forwardBtn);
-  }else{
-    const spacer = document.createElement("div");
-    spacer.className = "spacer";
-    pager.appendChild(spacer);
-  }
-
-  const mid = document.createElement("div");
-  mid.className = "spacer";
-  pager.appendChild(mid);
-
-  if(canBack){
-    const backBtn = document.createElement("button");
-    backBtn.type = "button";
-    backBtn.textContent = "back in time";
-    backBtn.addEventListener("click", () => {
+    const loadBtn = document.createElement("button");
+    loadBtn.type = "button";
+    loadBtn.textContent = "load more";
+    loadBtn.addEventListener("click", () => {
       if(tumblrLoading) return;
       tumblrStart = tumblrStart + TUMBLR_PAGE_SIZE;
       loadTumblrFeed().catch(() => {});
     });
-    pager.appendChild(backBtn);
-  }
 
-  tumblrFeed.appendChild(pager);
+    pager.appendChild(loadBtn);
+    tumblrFeed.appendChild(pager);
+
+  } else {
+    // Standard logic for 'Newest' and other categories
+    const canForward = tumblrStart > 0;
+    const canBack = numPosts === TUMBLR_PAGE_SIZE;
+
+    if(!canForward && !canBack) return;
+
+    const pager = document.createElement("div");
+    pager.className = "tumblrPager";
+
+    if(canForward){
+      const forwardBtn = document.createElement("button");
+      forwardBtn.type = "button";
+      forwardBtn.textContent = "forward in time";
+      forwardBtn.addEventListener("click", () => {
+        if(tumblrLoading) return;
+        tumblrStart = Math.max(0, tumblrStart - TUMBLR_PAGE_SIZE);
+        loadTumblrFeed().catch(() => {});
+      });
+      pager.appendChild(forwardBtn);
+    }else{
+      const spacer = document.createElement("div");
+      spacer.className = "spacer";
+      pager.appendChild(spacer);
+    }
+
+    const mid = document.createElement("div");
+    mid.className = "spacer";
+    pager.appendChild(mid);
+
+    if(canBack){
+      const backBtn = document.createElement("button");
+      backBtn.type = "button";
+      backBtn.textContent = "back in time";
+      backBtn.addEventListener("click", () => {
+        if(tumblrLoading) return;
+        tumblrStart = tumblrStart + TUMBLR_PAGE_SIZE;
+        loadTumblrFeed().catch(() => {});
+      });
+      pager.appendChild(backBtn);
+    }
+
+    tumblrFeed.appendChild(pager);
+  }
 }
 
 async function loadTumblrFeed(){
@@ -814,8 +843,10 @@ async function loadTumblrFeed(){
 
   tumblrLoading = true;
   const activePostId = getActivePostId();
+  const isGridMode = (currentTag === "thoughts" && !activePostId);
+  const isLoadMore = (isGridMode && tumblrStart > 0);
 
-  if (currentTag === "thoughts" && !activePostId) {
+  if (isGridMode) {
     tumblrFeed.classList.add("grid-mode");
   } else {
     tumblrFeed.classList.remove("grid-mode");
@@ -828,7 +859,18 @@ async function loadTumblrFeed(){
   }
 
   try{
-    tumblrFeed.innerHTML = '<div class="feedMessage">Loading...</div>';
+    if (!isLoadMore) {
+      // Unconditionally wipe the screen if it's a completely fresh view
+      tumblrFeed.innerHTML = '<div class="feedMessage">Loading...</div>';
+    } else {
+      // If we are appending to the grid, we don't wipe the screen.
+      // We just append a temporary loader to the bottom of the grid instead.
+      const loader = document.createElement("div");
+      loader.className = "feedMessage loader-msg";
+      loader.textContent = "Loading...";
+      loader.style.gridColumn = "1 / -1"; // Spans full width of the grid
+      tumblrFeed.appendChild(loader);
+    }
 
     const url = tumblrJsonUrl({
       start: tumblrStart,
@@ -845,13 +887,20 @@ async function loadTumblrFeed(){
 
     const posts = Array.isArray(data?.posts) ? data.posts : [];
     
-    tumblrFeed.innerHTML = "";
+    if (!isLoadMore) {
+      tumblrFeed.innerHTML = "";
+    } else {
+      // Safely remove the temporary appended loader once data arrives
+      const existingLoader = tumblrFeed.querySelector('.loader-msg');
+      if (existingLoader) existingLoader.remove();
+    }
 
     if(!posts.length){
       if(tumblrStart === 0) {
          tumblrFeed.innerHTML = '<div class="feedMessage">No posts found in this collection.</div>';
-      } else {
+      } else if (!isLoadMore) {
          tumblrFeed.innerHTML = '<div class="feedMessage">You have reached the very beginning of the archive.</div>';
+         renderTumblrPager([]); 
       }
       return;
     }
@@ -879,16 +928,19 @@ async function loadTumblrFeed(){
 
     posts.forEach(p => tumblrFeed.appendChild(buildTumblrPostElement(p)));
     
+    // We pass the fetched posts directly into the pager to determine what buttons to show
+    renderTumblrPager(posts);
+
   }catch(e){
     console.error(e);
-    tumblrFeed.innerHTML = '<div class="feedMessage">Unable to load feed.</div>';
+    if (!isLoadMore) {
+      tumblrFeed.innerHTML = '<div class="feedMessage">Unable to load feed.</div>';
+    } else {
+      const existingLoader = tumblrFeed.querySelector('.loader-msg');
+      if (existingLoader) existingLoader.textContent = "Unable to load more.";
+    }
   }finally{
     tumblrLoading = false;
-    
-    if (!getActivePostId()) {
-      const postsOnScreen = Array.from(document.querySelectorAll(".tumblrPost"));
-      renderTumblrPager(postsOnScreen);
-    }
   }
 }
 
