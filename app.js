@@ -8,7 +8,6 @@ const YT_CHANNEL_ID = "UCuDJUj1szS87hLRjXQKnmaA";
 const YT_CHANNEL_FALLBACK_URL = "https://www.youtube.com/@houseoftakuya";
 
 const TUMBLR_BLOG = "takuyakitano";
-// Changed to 12 so it is perfectly divisible by the 3-column grid
 const TUMBLR_PAGE_SIZE = 12; 
 
 const GOODREADS_PROFILE_URL = "https://www.goodreads.com/takuyakitano"; 
@@ -42,7 +41,7 @@ const STATUS_ITEMS = [
 ];
 
 /* =========================================================
-   UTILS
+   UTILS & META DATA
 ========================================================= */
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -180,6 +179,35 @@ function extractTitleFromBody(html) {
   }
 
   return { title: null, body: html };
+}
+
+// Dynamically updates SEO and tab titles for modern crawlers and browsers
+function updateMetaTags(titleText, descText){
+  const base = "KUYA";
+  const t = String(titleText || "").trim();
+  const title = t ? `${t} — ${base}` : `${base} — feed.`;
+  const desc = descText || "KUYA — feed.";
+  
+  document.title = title;
+
+  let metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) metaDesc.content = desc;
+
+  let ogTitle = document.querySelector('meta[property="og:title"]');
+  if (!ogTitle) {
+    ogTitle = document.createElement('meta');
+    ogTitle.setAttribute('property', 'og:title');
+    document.head.appendChild(ogTitle);
+  }
+  ogTitle.content = title;
+
+  let ogDesc = document.querySelector('meta[property="og:description"]');
+  if (!ogDesc) {
+    ogDesc = document.createElement('meta');
+    ogDesc.setAttribute('property', 'og:description');
+    document.head.appendChild(ogDesc);
+  }
+  ogDesc.content = desc;
 }
 
 /* =========================================================
@@ -649,12 +677,6 @@ function buildNativeShareUrl(postId, title){
   return `${base}${prettyHashForPost(postId, title)}`;
 }
 
-function setDocumentTitleForSinglePost(titleText){
-  const base = "KUYA";
-  const t = String(titleText || "").trim();
-  document.title = t ? `${t} — ${base}` : `${base} — post`;
-}
-
 function buildTumblrPostElement(p){
   const postId = String(p?.id || "");
   const inner = buildPostInner(p);
@@ -762,7 +784,6 @@ function buildTumblrPostElement(p){
 function renderTumblrPager(fetchedPosts){
   if(!tumblrFeed) return;
 
-  // Clear existing pagers
   tumblrFeed.querySelectorAll(".tumblrPager").forEach(n => n.remove());
   if(getActivePostId()) return;
 
@@ -770,13 +791,10 @@ function renderTumblrPager(fetchedPosts){
   const numPosts = Array.isArray(fetchedPosts) ? fetchedPosts.length : 0;
 
   if (isGridMode) {
-    // We only show the Load More button if the current fetch returned a full page.
-    // If it didn't, we've hit the end of the archive.
     if (numPosts < TUMBLR_PAGE_SIZE) return; 
 
     const pager = document.createElement("div");
     pager.className = "tumblrPager";
-    // Center the load more button inline so it looks clean in the grid
     pager.style.justifyContent = "center"; 
 
     const loadBtn = document.createElement("button");
@@ -792,7 +810,6 @@ function renderTumblrPager(fetchedPosts){
     tumblrFeed.appendChild(pager);
 
   } else {
-    // Standard logic for 'Newest' and other categories
     const canForward = tumblrStart > 0;
     const canBack = numPosts === TUMBLR_PAGE_SIZE;
 
@@ -801,26 +818,7 @@ function renderTumblrPager(fetchedPosts){
     const pager = document.createElement("div");
     pager.className = "tumblrPager";
 
-    if(canForward){
-      const forwardBtn = document.createElement("button");
-      forwardBtn.type = "button";
-      forwardBtn.textContent = "forward in time";
-      forwardBtn.addEventListener("click", () => {
-        if(tumblrLoading) return;
-        tumblrStart = Math.max(0, tumblrStart - TUMBLR_PAGE_SIZE);
-        loadTumblrFeed().catch(() => {});
-      });
-      pager.appendChild(forwardBtn);
-    }else{
-      const spacer = document.createElement("div");
-      spacer.className = "spacer";
-      pager.appendChild(spacer);
-    }
-
-    const mid = document.createElement("div");
-    mid.className = "spacer";
-    pager.appendChild(mid);
-
+    // BACK BUTTON (LEFT)
     if(canBack){
       const backBtn = document.createElement("button");
       backBtn.type = "button";
@@ -831,9 +829,28 @@ function renderTumblrPager(fetchedPosts){
         loadTumblrFeed().catch(() => {});
       });
       pager.appendChild(backBtn);
+    }else{
+      const spacer = document.createElement("div");
+      spacer.className = "spacer";
+      pager.appendChild(spacer);
     }
 
-    tumblrFeed.appendChild(pager);
+    const mid = document.createElement("div");
+    mid.className = "spacer";
+    pager.appendChild(mid);
+
+    // FORWARD BUTTON (RIGHT)
+    if(canForward){
+      const forwardBtn = document.createElement("button");
+      forwardBtn.type = "button";
+      forwardBtn.textContent = "forward in time";
+      forwardBtn.addEventListener("click", () => {
+        if(tumblrLoading) return;
+        tumblrStart = Math.max(0, tumblrStart - TUMBLR_PAGE_SIZE);
+        loadTumblrFeed().catch(() => {});
+      });
+      pager.appendChild(forwardBtn);
+    }
   }
 }
 
@@ -860,15 +877,12 @@ async function loadTumblrFeed(){
 
   try{
     if (!isLoadMore) {
-      // Unconditionally wipe the screen if it's a completely fresh view
       tumblrFeed.innerHTML = '<div class="feedMessage">Loading...</div>';
     } else {
-      // If we are appending to the grid, we don't wipe the screen.
-      // We just append a temporary loader to the bottom of the grid instead.
       const loader = document.createElement("div");
       loader.className = "feedMessage loader-msg";
       loader.textContent = "Loading...";
-      loader.style.gridColumn = "1 / -1"; // Spans full width of the grid
+      loader.style.gridColumn = "1 / -1"; 
       tumblrFeed.appendChild(loader);
     }
 
@@ -890,7 +904,6 @@ async function loadTumblrFeed(){
     if (!isLoadMore) {
       tumblrFeed.innerHTML = "";
     } else {
-      // Safely remove the temporary appended loader once data arrives
       const existingLoader = tumblrFeed.querySelector('.loader-msg');
       if (existingLoader) existingLoader.remove();
     }
@@ -906,6 +919,14 @@ async function loadTumblrFeed(){
     }
 
     if(activePostId){
+      const p = posts[0];
+      const el = buildTumblrPostElement(p);
+      
+      el.classList.add("single-post-view");
+      
+      tumblrFeed.appendChild(el);
+
+      // --- MOVED BACK BUTTON BELOW THE POST ---
       const backBtn = document.createElement("button");
       backBtn.className = "yzyBackBtn";
       backBtn.textContent = "← back to feed";
@@ -914,21 +935,20 @@ async function loadTumblrFeed(){
       });
       tumblrFeed.appendChild(backBtn);
 
-      const p = posts[0];
-      const el = buildTumblrPostElement(p);
-      
-      el.classList.add("single-post-view");
-      
-      tumblrFeed.appendChild(el);
-
       const inner = buildPostInner(p);
-      setDocumentTitleForSinglePost(inner.title || deriveTitle(p, inner));
+      const postTitle = inner.title || deriveTitle(p, inner);
+      const postDesc = stripHtml(inner.html).substring(0, 160) + "...";
+      
+      // Updates browser tab and SEO tags dynamically
+      updateMetaTags(postTitle, postDesc);
       return;
     }
 
+    // Reset meta tags to default if we are on the main feed
+    updateMetaTags("", "");
+
     posts.forEach(p => tumblrFeed.appendChild(buildTumblrPostElement(p)));
     
-    // We pass the fetched posts directly into the pager to determine what buttons to show
     renderTumblrPager(posts);
 
   }catch(e){
