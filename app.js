@@ -17,6 +17,7 @@ const GOODREADS_PROFILE_URL = "https://www.goodreads.com/takuyakitano";
 ========================================================= */
 
 const bpmEl = document.getElementById("bpm");
+const ghostEl = document.getElementById("bpmGhost");
 const clockEl = document.getElementById("clock");
 const tzEl = document.getElementById("tz");
 const statusEl = document.getElementById("status");
@@ -278,8 +279,11 @@ function updateOnline(){
   const on = navigator.onLine;
   if(statusEl) statusEl.textContent = on ? "online" : "offline";
   if(!dot) return;
-  dot.style.background = on ? "rgba(0,160,120,.70)" : "rgba(220,80,80,.70)";
-  dot.style.boxShadow = on ? "0 0 18px rgba(0,160,120,.35)" : "0 0 18px rgba(220,80,80,.30)";
+  if(on) {
+    dot.classList.remove('offline');
+  } else {
+    dot.classList.add('offline');
+  }
 }
 
 let bpmValue = 72;
@@ -341,8 +345,6 @@ function getDailyTargetParams(){
 }
 
 function tickBpm(){
-  if(!bpmEl) return;
-
   const nowT = performance.now();
   const dt = Math.min(0.2, Math.max(0.02, (nowT - lastTick) / 1000));
   lastTick = nowT;
@@ -372,12 +374,8 @@ function tickBpm(){
   bpmValue = Math.max(32, Math.min(190, bpmValue));
 
   const shown = Math.round(bpmValue);
-  bpmEl.textContent = shown;
-
-  if(dot){
-    const pulse = 0.95 + (shown - 60) / 260;
-    dot.style.transform = `scale(${pulse})`;
-  }
+  if(bpmEl) bpmEl.textContent = shown;
+  if(ghostEl) ghostEl.textContent = shown;
 }
 
 /* =========================================================
@@ -872,7 +870,6 @@ async function loadTumblrFeed(){
     document.body.classList.remove("is-newest");
   }
 
-  // --- ADDED: MOBILE HIDING LOGIC FLAG ---
   if (activePostId) {
     document.body.classList.add("is-single-post");
   } else {
