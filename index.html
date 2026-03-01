@@ -6,11 +6,19 @@
   <title>KUYA</title>
   <meta name="description" content="KUYA — feed." />
   <meta name="theme-color" content="#fbfaf7" />
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  
   <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body class="is-newest">
   <div class="blurBorder"></div>
+
+  <div class="bpmGhost" id="bpmGhost">72</div>
+  <div class="bpmGhostLabel">BPM</div>
 
   <header class="topbar">
     <div class="topbarLeft">
@@ -28,6 +36,7 @@
       </div>
 
       <div class="statusRow">
+        <div class="dot"></div>
         <span id="statusLead" class="brandLabel">is</span>
         <span id="statusMsg" class="statusMsg" aria-live="polite">loading...</span>
       </div>
