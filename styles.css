@@ -254,12 +254,14 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   display: block; 
   width: 100%; 
   height: auto; 
-  border-radius: 14px; 
+  border-radius: 12px;
   margin: 16px 0; 
   cursor: zoom-in; 
   
-  border: 1px solid rgba(0, 0, 0, 0.08); 
-  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.12); 
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.08),
+    0 12px 32px rgba(0, 0, 0, 0.12);
 }
 
 .tumblrPhotoGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 12px 0; }
