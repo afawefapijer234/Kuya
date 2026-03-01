@@ -255,16 +255,17 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   width: 100%; 
   height: auto; 
   border-radius: 14px; 
-  margin: 12px 0; 
+  margin: 16px 0; 
   cursor: zoom-in; 
+  
+  border: 1px solid rgba(0, 0, 0, 0.08); 
+  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.12); 
 }
 
 .tumblrPhotoGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 12px 0; }
 
 .tumblrSignoff { margin-top: 12px; text-align: center; color: rgba(0,0,0,.55); }
 .tumblrSignoff a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
-
-/* --- FROSTED PAGER BUTTONS --- */
 .tumblrPager { justify-content: space-between; gap: 12px; padding: 18px 0 4px; margin-top: 14px; }
 .tumblrPager .spacer { flex: 1; }
 .tumblrPager button { 
