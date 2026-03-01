@@ -1,37 +1,46 @@
 :root{
   --bg:#fbfaf7;
-  --text: rgba(0,0,0,.82);
-  --muted: rgba(0,0,0,.50);
-  --line: rgba(0,0,0,.10);
-  --accent: #e45656;
+  --text: rgba(0,0,0,.80);
+  --muted: rgba(0,0,0,.42);
+  --line: rgba(0,0,0,.08);
+  --accent: #d94f3d;
+  --mono: 'DM Mono', monospace;
+  --display: 'Syne', sans-serif;
 }
 
 *{ box-sizing:border-box; }
 
-/* Fallback background to prevent white flashes on mobile scroll */
 html { 
   background-color: #eae9e4; 
 }
 
-body{
+body {
   margin:0;
-  background: linear-gradient(to bottom, #fbfaf7, #faf9f3 60%, #eae9e4 100%);
-  background-attachment: fixed;
-  background-size: cover;
-  background-repeat: no-repeat;
   min-height: 100vh;
   color: var(--text);
-  font: 13px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: -1;
+  background: linear-gradient(to bottom, #fbfaf7, #f6f5f0 55%, #ece9e2 100%);
+  pointer-events: none;
 }
 
 .blurBorder {
   position: fixed;
   top: 0; left: 0; right: 0;
-  height: 100vh; /* Fallback for older browsers */
-  height: 100dvh; /* FIX: Dynamic viewport height stops the mobile address bar jump */
+  height: 100vh; 
+  height: 100dvh; 
   z-index: 50; 
   pointer-events: none; 
-  transform: translate3d(0, 0, 0); /* FIX: Forces GPU hardware acceleration to stop stuttering */
+  transform: translate3d(0, 0, 0); 
   
   backdrop-filter: blur(6px); 
   -webkit-backdrop-filter: blur(6px);
@@ -52,6 +61,36 @@ body{
   );
 }
 
+/* ── GHOST BPM ── */
+.bpmGhost {
+  position: fixed;
+  bottom: -0.15em;
+  right: -0.02em;
+  font-family: var(--display);
+  font-size: clamp(100px, 18vw, 200px);
+  font-weight: 800;
+  color: rgba(0,0,0,.045);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  letter-spacing: -0.04em;
+  transition: color 1s ease;
+}
+.bpmGhostLabel {
+  position: fixed;
+  bottom: clamp(80px, 14vw, 160px);
+  right: 18px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(0,0,0,.18);
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
 a, button { 
   color: inherit; 
   text-decoration: none; 
@@ -70,7 +109,7 @@ a:hover, button:hover {
 
 .topbar{
   position: relative;
-  z-index: 100; /* Keeps Nav fully clickable above the blur */
+  z-index: 100; 
 
   max-width: 700px;
   margin: 0 auto;
@@ -97,8 +136,11 @@ a:hover, button:hover {
 }
 
 .brandName { 
-  font-weight: 500; 
-  letter-spacing: .01em; 
+  font-family: var(--display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .28em;
+  text-transform: uppercase;
   color: var(--muted); 
 }
 
@@ -116,6 +158,28 @@ a:hover, button:hover {
 .statusRow { 
   margin: 2px 0 8px; 
   color: var(--muted); 
+}
+
+/* ── PULSING RED DOT ── */
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px rgba(217,79,61,.4);
+  flex-shrink: 0;
+  animation: pulse 2.2s ease-in-out infinite;
+  display: inline-block;
+  margin-right: 2px;
+}
+.dot.offline {
+  background: #888;
+  box-shadow: 0 0 10px rgba(0,0,0,.2);
+  animation: none;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(217,79,61,.4); }
+  50% { transform: scale(1.25); box-shadow: 0 0 18px rgba(217,79,61,.6); }
 }
 
 .statusMsg { position: relative; white-space: nowrap; }
@@ -136,19 +200,20 @@ a:hover, button:hover {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none; 
-  padding-right: 24px; /* Gives the scroll room to breathe at the edge */
+  padding-right: 24px; 
 }
 .categoryNav::-webkit-scrollbar {
   display: none; 
 }
 
-/* FIX: Stops the random button from getting squished and cut off */
 .catBtn {
   flex-shrink: 0; 
+  font-family: var(--mono);
+  letter-spacing: .06em;
 }
 
 .catLabel { font-style: italic; opacity: 0.7; }
-.catBtn.active { color: var(--accent); }
+.catBtn.active { color: var(--accent); } /* Left without underline */
 
 .bpmLine { color: var(--accent); letter-spacing: .01em; }
 
@@ -179,10 +244,20 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   transition: opacity 0.2s ease; 
 }
 
+body.is-single-post .inlineSocials,
+body.is-single-post .statusRow,
+body.is-single-post .categoryNav,
+body.is-single-post .topbarRight,
+body:has(.single-post-view) .inlineSocials,
+body:has(.single-post-view) .statusRow,
+body:has(.single-post-view) .categoryNav,
+body:has(.single-post-view) .topbarRight {
+  display: none !important;
+}
+
 /* ========================================================= */
 
-/* FIX: Added padding-top 24px to give space between nav and grid */
-.wrap { max-width: 700px; margin: 0 auto; padding: 24px 18px 60px; }
+.wrap { position: relative; z-index: 10; max-width: 700px; margin: 0 auto; padding: 24px 18px 60px; }
 
 .feedMessage {
   color: var(--muted);
@@ -192,13 +267,30 @@ body:not(.is-newest) .topbar:hover .topbarRight {
 }
 
 .feed { border-top: 1px solid transparent; }
-.feedKicker { padding: 12px 0 8px; }
+
+.feedKicker { 
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: rgba(0,0,0,.28);
+  padding: 12px 0 8px; 
+}
 .feedHeader { justify-content: space-between; padding: 12px 0 14px; border-top: 1px solid rgba(0,0,0,.06); }
 .feedTitle { font-weight: 400; color: rgba(0,0,0,.70); }
 
 .tumblrFeed { display: flex; flex-direction: column; }
 .tumblrPost { padding: 16px 0; }
 .tumblrPost:first-child { padding-top: 6px; }
+
+/* Line separating standard posts */
+.tumblrFeed:not(.grid-mode) .tumblrPost {
+  padding: 24px 0;
+  border-bottom: 1px solid rgba(0,0,0,.06);
+}
+.tumblrFeed:not(.grid-mode) .tumblrPost:last-child {
+  border-bottom: none;
+}
 
 .tumblrHead { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
 .tumblrHeadLeft { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; } 
@@ -215,11 +307,13 @@ body:not(.is-newest) .topbar:hover .topbarRight {
 
 .tumblrPostTitle {
   display: inline-block;
-  font-size: 20px; 
-  font-weight: 700; 
-  color: var(--muted); 
-  line-height: 1.3;
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 600;
+  color: rgba(0,0,0,.72);
+  line-height: 1.25;
   margin-bottom: 2px;
+  letter-spacing: -.01em;
   text-decoration: none; 
   transition: color 0.2s ease;
 }
@@ -229,7 +323,8 @@ body:not(.is-newest) .topbar:hover .topbarRight {
 }
 
 .tumblrShareInline, .tumblrPostDate {
-  font-size: 12px;
+  font-family: var(--mono);
+  font-size: 10px;
   opacity: 0;
   color: var(--muted); 
   transition: opacity .18s ease;
@@ -237,7 +332,7 @@ body:not(.is-newest) .topbar:hover .topbarRight {
 .tumblrPost:hover .tumblrShareInline, .tumblrPost:hover .tumblrPostDate { opacity: 1; }
 .tumblrShareInline { text-decoration: underline; text-underline-offset: 3px; }
 
-.tumblrBody { color: var(--muted); margin-top: 10px; line-height: 1.6; overflow-wrap: anywhere; }
+.tumblrBody { font-family: var(--mono); font-size: 12px; font-weight: 300; color: var(--muted); margin-top: 10px; line-height: 1.7; overflow-wrap: anywhere; }
 .tumblrBody h1, .tumblrBody h2, .tumblrBody h3 { font-weight: 600; font-size: 13px; margin: 0 0 10px; }
 .tumblrBody p { margin: 0 0 10px; }
 .tumblrBody blockquote { margin: 10px 0; padding-left: 12px; border-left: 2px solid rgba(0,0,0,.12); opacity: .9; }
@@ -257,20 +352,20 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   border-radius: 12px;
   margin: 16px 0; 
   cursor: zoom-in; 
-  
   border: 1px solid rgba(0, 0, 0, 0.14);
-  box-shadow: 
-    0 4px 8px rgba(0, 0, 0, 0.08),
-    0 12px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08), 0 12px 32px rgba(0, 0, 0, 0.12);
 }
 
 .tumblrPhotoGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 12px 0; }
 
-.tumblrSignoff { margin-top: 12px; text-align: center; color: rgba(0,0,0,.55); }
+.tumblrSignoff { font-family: var(--mono); font-style: italic; letter-spacing: .04em; margin-top: 12px; text-align: center; color: rgba(0,0,0,.55); }
 .tumblrSignoff a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+
+/* --- FROSTED PAGER BUTTONS --- */
 .tumblrPager { justify-content: space-between; gap: 12px; padding: 18px 0 4px; margin-top: 14px; }
 .tumblrPager .spacer { flex: 1; }
 .tumblrPager button { 
+  font-family: var(--mono);
   background: rgba(255, 255, 255, 0.4); 
   backdrop-filter: blur(12px); 
   -webkit-backdrop-filter: blur(12px);
@@ -297,6 +392,7 @@ body:not(.is-newest) .topbar:hover .topbarRight {
 
 /* --- CLEAN TEXT BACK BUTTON --- */
 .yzyBackBtn {
+  font-family: var(--mono);
   display: block;
   margin: 40px auto 32px;
   text-align: center;
@@ -328,10 +424,11 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   min-width: 160px;
 }
 .yzy-context-menu button {
+  font-family: var(--mono);
   text-align: left;
   padding: 8px 16px;
   color: var(--text);
-  font-size: 13px;
+  font-size: 11px;
   border-radius: 8px; 
   transition: background 0.2s, transform 0.2s, color 0.2s;
 }
@@ -411,8 +508,10 @@ body:not(.is-newest) .topbar:hover .topbarRight {
 }
 
 .tumblrFeed.grid-mode .tumblrPostTitle {
+  font-family: var(--display);
   font-size: 15px; 
   font-weight: 600;
+  letter-spacing: -.01em;
 }
 
 .tumblrFeed.grid-mode .tumblrMeta,
@@ -456,4 +555,5 @@ body:not(.is-newest) .topbar:hover .topbarRight {
   .categoryNav { gap: 10px; margin-top: 8px; } 
   
   .tumblrFeed.grid-mode { grid-template-columns: repeat(2, 1fr); } 
+  .bpmGhost { font-size: clamp(80px, 28vw, 140px); }
 }
