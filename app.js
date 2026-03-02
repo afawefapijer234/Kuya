@@ -16,7 +16,6 @@ const GOODREADS_PROFILE_URL = "https://www.goodreads.com/takuyakitano";
    DOM HOOKS
 ========================================================= */
 
-const bpmEl = document.getElementById("bpm");
 const ghostEl = document.getElementById("bpmGhost");
 const clockEl = document.getElementById("clock");
 const tzEl = document.getElementById("tz");
@@ -374,8 +373,13 @@ function tickBpm(){
   bpmValue = Math.max(32, Math.min(190, bpmValue));
 
   const shown = Math.round(bpmValue);
-  if(bpmEl) bpmEl.textContent = shown;
+
   if(ghostEl) ghostEl.textContent = shown;
+
+  if(dot){
+    const pulse = 0.95 + (shown - 60) / 260;
+    dot.style.transform = `scale(${pulse})`;
+  }
 }
 
 /* =========================================================
@@ -777,17 +781,20 @@ function buildTumblrPostElement(p){
   return post;
 }
 
+// --- UPDATED PAGINATION ENGINE ---
 function renderTumblrPager(fetchedPosts){
   if(!tumblrFeed) return;
 
+  // Clear old pagers
   tumblrFeed.querySelectorAll(".tumblrPager").forEach(n => n.remove());
   if(getActivePostId()) return;
 
   const isGridMode = (currentTag === "thoughts");
-  
   const numPosts = Array.isArray(fetchedPosts) ? fetchedPosts.length : 0;
 
   if (isGridMode) {
+    // Hide Load More button if we mathematically reach the end
+    if (tumblrTotal !== null && (tumblrStart + TUMBLR_PAGE_SIZE >= tumblrTotal)) return;
     if (numPosts === 0) return; 
 
     const pager = document.createElement("div");
@@ -808,7 +815,9 @@ function renderTumblrPager(fetchedPosts){
 
   } else {
     const canForward = tumblrStart > 0;
-    const canBack = numPosts > 0; 
+    
+    // Uses Tumblr's true database count so the button accurately vanishes at the end
+    const canBack = tumblrTotal !== null ? (tumblrStart + TUMBLR_PAGE_SIZE < tumblrTotal) : (numPosts > 0);
 
     if(!canForward && !canBack) return;
 
@@ -821,6 +830,8 @@ function renderTumblrPager(fetchedPosts){
       backBtn.textContent = "back in time";
       backBtn.addEventListener("click", () => {
         if(tumblrLoading) return;
+        // SMOOTH SCROLL ADDED HERE:
+        window.scrollTo({ top: 0, behavior: 'smooth' }); 
         tumblrStart = tumblrStart + TUMBLR_PAGE_SIZE;
         loadTumblrFeed().catch(() => {});
       });
@@ -841,6 +852,8 @@ function renderTumblrPager(fetchedPosts){
       forwardBtn.textContent = "forward in time";
       forwardBtn.addEventListener("click", () => {
         if(tumblrLoading) return;
+        // SMOOTH SCROLL ADDED HERE:
+        window.scrollTo({ top: 0, behavior: 'smooth' }); 
         tumblrStart = Math.max(0, tumblrStart - TUMBLR_PAGE_SIZE);
         loadTumblrFeed().catch(() => {});
       });
