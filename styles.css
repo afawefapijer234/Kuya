@@ -1,90 +1,539 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>KUYA</title>
-  <meta name="description" content="KUYA — feed." />
-  <meta name="theme-color" content="#fbfaf7" />
+:root{
+  --bg:#fbfaf7;
+  --text: rgba(0,0,0,.80);
+  --muted: rgba(0,0,0,.42);
+  --line: rgba(0,0,0,.08);
+  --accent: #d94f3d;
+}
+
+*{ box-sizing:border-box; }
+
+html { 
+  background-color: #eae9e4; 
+}
+
+body {
+  margin:0;
+  min-height: 100vh;
+  color: var(--text);
+  font: 13px/1.6 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  font-weight: 400;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: -1;
+  background: linear-gradient(to bottom, #fbfaf7, #f6f5f0 55%, #ece9e2 100%);
+  pointer-events: none;
+}
+
+.blurBorder {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 100vh; 
+  height: 100dvh; 
+  z-index: 50; 
+  pointer-events: none; 
+  transform: translate3d(0, 0, 0); 
   
-  <link rel="stylesheet" href="styles.css" />
-</head>
+  backdrop-filter: blur(6px); 
+  -webkit-backdrop-filter: blur(6px);
+  
+  mask-image: linear-gradient(
+    to bottom, 
+    black 0%, 
+    transparent 120px, 
+    transparent calc(100% - 120px), 
+    black 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom, 
+    black 0%, 
+    transparent 120px, 
+    transparent calc(100% - 120px), 
+    black 100%
+  );
+}
 
-<body class="is-newest">
-  <div class="blurBorder"></div>
+.bpmGhost {
+  position: fixed;
+  bottom: -0.15em;
+  right: -0.02em;
+  font-size: clamp(100px, 18vw, 200px);
+  font-weight: 800;
+  color: rgba(0,0,0,.045);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  letter-spacing: -0.04em;
+  transition: color 1s ease;
+}
+.bpmGhostLabel {
+  position: fixed;
+  bottom: clamp(80px, 14vw, 160px);
+  right: 18px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(0,0,0,.18);
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
 
-  <div class="bpmGhost" id="bpmGhost">72</div>
-  <div class="bpmGhostLabel">BPM</div>
+a, button { 
+  color: inherit; 
+  text-decoration: none; 
+  transition: color 0.2s ease;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  cursor: pointer;
+}
 
-  <header class="topbar">
-    <div class="topbarLeft">
-      
-      <div class="brandRow">
-        <a class="brandName" href="./">takuya</a>
-        
-        <nav class="inlineSocials">
-          <span class="divider">/</span>
-          <a href="https://www.youtube.com/@houseoftakuya" target="_blank">yt</a>
-          <a href="https://instagram.com/kuya/" target="_blank">ig</a>
-          <a href="https://discord.gg/EyzZ2HB" target="_blank">disc</a>
-          <a href="https://tiktok.com/@kuya5k" target="_blank">tok</a>
-        </nav>
-      </div>
+a:hover, button:hover { 
+  color: var(--accent); 
+}
 
-      <div class="statusRow">
-        <div class="dot"></div>
-        <span id="statusLead" class="brandLabel">is</span>
-        <span id="statusMsg" class="statusMsg" aria-live="polite">loading...</span>
-      </div>
+.topbar{
+  position: relative;
+  z-index: 100; 
 
-      <nav class="categoryNav">
-        <button class="catBtn active" data-tag="">newest</button>
-        <button class="catBtn" data-tag="thoughts">thoughts</button>
-        <button class="catBtn" data-tag="design">design</button>
-        <button class="catBtn" data-tag="poly">poly</button>
-        <button class="catBtn" data-tag="inspo">inspo</button>
-        <button class="catBtn" id="randomBtn" title="read a random memory">random 🎲</button>
-      </nav>
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 26px 18px 18px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap: 18px;
+}
 
-    </div>
+.topbarLeft{ display: grid; gap: 6px; }
 
-    <div class="topbarRight">
-      <a class="email" href="mailto:t@kuya.design">t@kuya.design</a>
-    </div>
-  </header>
+.topbarRight{
+  text-align:right;
+  display:flex;
+  flex-direction:column;
+  gap: 6px;
+  min-width: 160px;
+}
 
-<main class="wrap">
+.brandRow, .inlineSocials, .categoryNav, .feedHeader, .tumblrPager {
+  display: flex;
+  align-items: baseline;
+}
 
-  <section class="goodreads">
-    <div class="feedKicker">currently reading→</div>
+.brandName { 
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: var(--muted); 
+}
 
-    <div class="goodreadsWidget">
-      <div id="gr_grid_widget_1768982139"></div>
+.brandRow {
+  flex-wrap: wrap; 
+}
 
-      <script
-        src="https://www.goodreads.com/review/grid_widget/60019791.currently%20reading?cover_size=small&hide_link=true&hide_title=true&num_books=20&order=a&shelf=currently-reading&sort=date_added&widget_id=1768982139"
-        type="text/javascript"
-        charset="utf-8">
-      </script>
-    </div>
-  </section>
+.brandLabel, .statusMsg, .feedKicker, .feedSource, .email, .inlineSocials, .catLabel, .catBtn {
+  color: var(--muted);
+}
 
-  <section class="feed">
-    <div class="feedKicker">new thoughts daily at 5am→</div>
-    <div id="tumblrFeed" class="tumblrFeed" aria-live="polite"></div>
-  </section>
+.inlineSocials { gap: 8px; margin-left: 8px; }
+.inlineSocials .divider { opacity: 0.3; }
 
-</main>
+.statusRow { 
+  margin: 2px 0 8px; 
+  color: var(--muted); 
+}
 
-  <div id="yzyContextMenu" class="yzy-context-menu">
-    <button data-action="top">back to top</button>
-    <button data-action="tag" data-tag="thoughts">thoughts</button>
-    <button data-action="tag" data-tag="design">design</button>
-    <button data-action="tag" data-tag="poly">poly</button>
-    <button data-action="tag" data-tag="inspo">inspo</button>
-    <button data-action="random">random</button>
-  </div>
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px rgba(217,79,61,.4);
+  flex-shrink: 0;
+  animation: pulse 2.2s ease-in-out infinite;
+  display: inline-block;
+  margin-right: 2px;
+}
+.dot.offline {
+  background: #888;
+  box-shadow: 0 0 10px rgba(0,0,0,.2);
+  animation: none;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(217,79,61,.4); }
+  50% { transform: scale(1.25); box-shadow: 0 0 18px rgba(217,79,61,.6); }
+}
 
-  <script src="app.js"></script>
-</body>
-</html>
+.statusMsg { position: relative; white-space: nowrap; }
+.statusMsg::after {
+  content: "▍";
+  margin-left: 2px;
+  color: rgba(0,0,0,.28);
+  animation: caretBlink 1s steps(1) infinite;
+}
+
+@keyframes caretBlink{ 50%{ opacity: 0; } }
+@media (prefers-reduced-motion: reduce){ .statusMsg::after{ animation: none; } }
+
+.categoryNav { 
+  gap: 12px; 
+  flex-wrap: nowrap; 
+  white-space: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; 
+  padding-right: 24px; 
+}
+.categoryNav::-webkit-scrollbar {
+  display: none; 
+}
+
+.catBtn {
+  flex-shrink: 0; 
+  letter-spacing: .06em;
+}
+
+.catLabel { font-style: italic; opacity: 0.7; }
+.catBtn.active { color: var(--accent); } 
+
+
+/* =========================================================
+   UI FADING & HIDING LOGIC (Newest vs Categories)
+========================================================= */
+
+body:not(.is-newest) .goodreads,
+body:not(.is-newest) .feed .feedKicker {
+  display: none;
+}
+
+body:not(.is-newest) .inlineSocials,
+body:not(.is-newest) .statusRow,
+body:not(.is-newest) .categoryNav,
+body:not(.is-newest) .topbarRight {
+  opacity: 0;
+  pointer-events: none; 
+  transition: opacity 1.5s ease; 
+}
+
+body:not(.is-newest) .topbar:hover .inlineSocials,
+body:not(.is-newest) .topbar:hover .statusRow,
+body:not(.is-newest) .topbar:hover .categoryNav,
+body:not(.is-newest) .topbar:hover .topbarRight {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.2s ease; 
+}
+
+body.is-single-post .inlineSocials,
+body.is-single-post .statusRow,
+body.is-single-post .categoryNav,
+body.is-single-post .topbarRight,
+body:has(.single-post-view) .inlineSocials,
+body:has(.single-post-view) .statusRow,
+body:has(.single-post-view) .categoryNav,
+body:has(.single-post-view) .topbarRight {
+  display: none !important;
+}
+
+/* ========================================================= */
+
+.wrap { position: relative; z-index: 10; max-width: 700px; margin: 0 auto; padding: 24px 18px 60px; }
+
+.feedMessage {
+  color: var(--muted);
+  text-align: center;
+  padding: 40px 0;
+  font-style: italic;
+}
+
+.feed { border-top: 1px solid transparent; }
+
+.feedKicker { 
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: rgba(0,0,0,.28);
+  padding: 0 0 8px; 
+}
+.feedHeader { justify-content: space-between; padding: 12px 0 14px; border-top: 1px solid rgba(0,0,0,.06); }
+.feedTitle { font-weight: 400; color: rgba(0,0,0,.70); }
+
+.tumblrFeed { display: flex; flex-direction: column; }
+.tumblrPost { padding: 16px 0; }
+.tumblrPost:first-child { padding-top: 6px; }
+
+.tumblrFeed:not(.grid-mode) .tumblrPost {
+  padding: 24px 0;
+  border-bottom: 1px solid rgba(0,0,0,.06);
+}
+.tumblrFeed:not(.grid-mode) .tumblrPost:last-child {
+  border-bottom: none;
+}
+
+.tumblrHead { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.tumblrHeadLeft { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; } 
+.tumblrMeta { display: inline-flex; align-items: center; gap: 10px; }
+
+.tumblrPost.single-post-view .tumblrHead {
+  align-items: center;
+  text-align: center;
+  margin-bottom: 36px; 
+}
+.tumblrPost.single-post-view .tumblrHeadLeft {
+  align-items: center;
+}
+
+.tumblrPostTitle {
+  display: inline-block;
+  font-size: 20px; 
+  font-weight: 700; 
+  color: var(--muted); 
+  line-height: 1.3;
+  margin-bottom: 2px;
+  text-decoration: none; 
+  transition: color 0.2s ease;
+}
+
+.tumblrPostTitle:hover {
+  color: var(--accent);
+}
+
+.tumblrShareInline, .tumblrPostDate {
+  font-size: 12px;
+  opacity: 0;
+  color: var(--muted); 
+  transition: opacity .18s ease;
+}
+.tumblrPost:hover .tumblrShareInline, .tumblrPost:hover .tumblrPostDate { opacity: 1; }
+.tumblrShareInline { text-decoration: underline; text-underline-offset: 3px; }
+
+.tumblrBody { color: var(--muted); margin-top: 10px; line-height: 1.6; overflow-wrap: anywhere; }
+.tumblrBody h1, .tumblrBody h2, .tumblrBody h3 { font-weight: 600; font-size: 13px; margin: 0 0 10px; }
+.tumblrBody p { margin: 0 0 10px; }
+.tumblrBody blockquote { margin: 10px 0; padding-left: 12px; border-left: 2px solid rgba(0,0,0,.12); opacity: .9; }
+.tumblrBody a { text-decoration: underline; text-underline-offset: 3px; }
+
+.tumblrBody figure.tmblr-full,
+.tumblrBody figure.tmblr-embed {
+  width: 100% !important;
+  margin: 12px 0 !important;
+}
+
+/* --- FRAMER STYLE IMAGE BORDER --- */
+.tumblrBody figure img, 
+.tumblrBody img { 
+  display: block; 
+  width: 100%; 
+  height: auto; 
+  margin: 16px 0; 
+  cursor: zoom-in; 
+
+  padding: 6px; 
+  background: rgba(255, 255, 255, 0.4); 
+  border: 1px solid rgba(0, 0, 0, 0.04); 
+  border-radius: 16px; 
+  
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06); 
+}
+
+.tumblrPhotoGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 12px 0; }
+
+.tumblrSignoff { font-style: italic; letter-spacing: .04em; margin-top: 12px; text-align: center; color: rgba(0,0,0,.55); }
+.tumblrSignoff a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+
+.tumblrPager { justify-content: space-between; gap: 12px; padding: 18px 0 4px; margin-top: 14px; }
+.tumblrPager .spacer { flex: 1; }
+.tumblrPager button { 
+  background: rgba(255, 255, 255, 0.4); 
+  backdrop-filter: blur(12px); 
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,0,0,.08); 
+  border-radius: 999px; 
+  padding: 8px 16px; 
+  opacity: .85; 
+  box-shadow: 0 4px 12px rgba(0,0,0,.02);
+  transition: all 0.2s ease;
+}
+.tumblrPager button:hover { 
+  opacity: 1; 
+  background: rgba(255, 255, 255, 0.8);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,.05);
+}
+
+.tumblrPager button[disabled] { 
+  opacity: .35; 
+  pointer-events: none; 
+  transform: none;
+  box-shadow: none;
+}
+
+.yzyBackBtn {
+  display: block;
+  margin: 40px auto 32px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  background: none;
+  border: none;
+  padding: 0;
+  transition: color 0.2s ease;
+  cursor: pointer;
+}
+.yzyBackBtn:hover {
+  color: var(--accent);
+}
+
+.yzy-context-menu {
+  position: fixed;
+  display: none; 
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px); 
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px; 
+  box-shadow: 0 12px 32px rgba(0,0,0,0.08); 
+  padding: 8px; 
+  z-index: 9999;
+  min-width: 160px;
+}
+.yzy-context-menu button {
+  text-align: left;
+  padding: 8px 16px;
+  color: var(--text);
+  font-size: 13px;
+  border-radius: 8px; 
+  transition: background 0.2s, transform 0.2s, color 0.2s;
+}
+.yzy-context-menu button:hover {
+  background: rgba(0, 0, 0, 0.04); 
+  color: var(--accent);
+  transform: translateX(4px); 
+}
+
+#imgLightbox { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 9999; background: rgba(0,0,0,.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); padding: 24px; }
+#imgLightbox.open { display: flex; }
+#imgLightbox .lbInner { max-width: min(1200px, 96vw); max-height: 92vh; display: grid; gap: 10px; justify-items: end; }
+#imgLightbox img { max-width: min(1200px, 96vw); max-height: 88vh; border-radius: 14px; background: rgba(255,255,255,.04); }
+
+#imgLightbox .lbClose { 
+  background: rgba(255,255,255,.14); 
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: rgba(255,255,255,.92); 
+  border-radius: 999px; 
+  padding: 8px 16px; 
+  transition: background 0.2s;
+}
+#imgLightbox .lbClose:hover { background: rgba(255,255,255,.25); }
+
+.goodreads { margin-bottom: 24px; }
+.goodreadsWidget { margin-top: 6px; }
+.goodreadsWidget .gr_grid_container { width: 100% !important; }
+.goodreadsWidget .gr_grid_book_container { display: inline-block !important; width: 39px !important; height: 60px !important; margin: 0 10px 10px 0 !important; padding: 0 !important; float: none !important; }
+.goodreadsWidget .gr_grid_book_container img { width: 39px !important; height: 60px !important; object-fit: cover; border-radius: 6px; display: block; }
+
+.tumblrFeed.grid-mode {
+  display: grid; 
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 16px;
+}
+
+.tumblrFeed.grid-mode .tumblrPost {
+  aspect-ratio: 1 / 1; 
+  margin-bottom: 0; 
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.4); 
+  backdrop-filter: blur(16px); 
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 0, 0, 0.04); 
+  border-radius: 16px; 
+  box-shadow: 0 8px 24px rgba(0,0,0,0.03); 
+  overflow: hidden; 
+  position: relative;
+  cursor: pointer; 
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tumblrFeed.grid-mode .tumblrPost:hover {
+  transform: translateY(-2px); 
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.06); 
+}
+
+.tumblrFeed.grid-mode .tumblrPost:first-child {
+  padding-top: 16px;
+}
+
+.tumblrFeed.grid-mode .tumblrPost::after {
+  content: "";
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 54px;
+  background: linear-gradient(to bottom, rgba(251,250,247,0), rgba(251,250,247,0.95) 90%);
+  pointer-events: none; 
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+.tumblrFeed.grid-mode .tumblrPostTitle {
+  font-size: 15px; 
+  font-weight: 600;
+  letter-spacing: -.01em;
+}
+
+.tumblrFeed.grid-mode .tumblrMeta,
+.tumblrFeed.grid-mode .tumblrSignoff {
+  display: none;
+}
+
+.tumblrFeed.grid-mode .tumblrPager {
+  grid-column: 1 / -1; 
+  display: flex; 
+  margin-top: 16px;
+}
+
+@media (max-width: 768px) {
+  body:not(.is-newest):not(.is-single-post) .inlineSocials,
+  body:not(.is-newest):not(.is-single-post) .statusRow,
+  body:not(.is-newest):not(.is-single-post) .categoryNav,
+  body:not(.is-newest):not(.is-single-post) .topbarRight {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+}
+
+@media (max-width: 640px){ 
+  .tumblrPhotoGrid { grid-template-columns: 1fr; } 
+  .tumblrFeed.grid-mode { grid-template-columns: repeat(2, 1fr); } 
+}
+
+@media (max-width: 520px){ 
+  .topbar { 
+    padding: 18px 10px 0;
+  }
+  
+  .wrap {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .topbarRight { min-width: auto; }
+  .categoryNav { gap: 10px; margin-top: 8px; } 
+  
+  .tumblrFeed.grid-mode { grid-template-columns: repeat(2, 1fr); } 
+  .bpmGhost { font-size: clamp(80px, 28vw, 140px); }
+}
