@@ -325,13 +325,33 @@ body:has(.single-post-view) .topbarRight {
 .tumblrBody blockquote { margin: 10px 0; padding-left: 12px; border-left: 2px solid rgba(0,0,0,.12); opacity: .9; }
 .tumblrBody a { text-decoration: underline; text-underline-offset: 3px; }
 
+
+/* --- THE FIX: FRAMER STYLE INNER OVERLAY BORDER (PURE CSS) --- */
+
+/* 1. We use Tumblr's native <figure> wrapper to hold the shadow and the overlay */
 .tumblrBody figure.tmblr-full,
 .tumblrBody figure.tmblr-embed {
+  position: relative;
+  display: block;
   width: 100% !important;
-  margin: 12px 0 !important;
+  margin: 16px 0 !important;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08); /* The shadow sits outside the box */
+  overflow: hidden;
 }
 
-/* --- THE FIX: FRAMER STYLE INNER OVERLAY BORDER --- */
+/* 2. We draw the 5px perfectly rounded glass overlay ON TOP of the image using ::after */
+.tumblrBody figure.tmblr-full::after,
+.tumblrBody figure.tmblr-embed::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  pointer-events: none;
+  border: 5px solid rgba(255, 255, 255, 0.24); /* This mathematically rounds the inner corner perfectly */
+}
+
+/* 3. Base image styling */
 .tumblrBody figure img, 
 .tumblrBody img { 
   display: block; 
@@ -339,14 +359,23 @@ body:has(.single-post-view) .topbarRight {
   height: auto; 
   margin: 16px 0; 
   cursor: zoom-in; 
-  border-radius: 12px; 
-  
-  /* 1. The Framer glass highlight pushed INSIDE the image via negative offset */
-  outline: 2px solid rgba(255, 255, 255, 0.24); 
-  outline-offset: -2px;
-  
-  /* 2. ONLY the soft drop shadow. Removed the 1px dark outer line that was bleeding outward. */
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08); 
+  border-radius: 16px; 
+}
+
+/* 4. Strip margins from images *inside* the figure wrapper so they sit flush */
+.tumblrBody figure img {
+  margin: 0 !important;
+  outline: none;
+  box-shadow: none;
+}
+
+/* 5. Fallback for any raw images in your older posts that aren't wrapped in a <figure> */
+.tumblrBody > img,
+.tumblrBody p > img,
+.tumblrPhotoGrid img {
+  outline: 5px solid rgba(255, 255, 255, 0.24);
+  outline-offset: -5px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
 }
 
 .tumblrPhotoGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 12px 0; }
