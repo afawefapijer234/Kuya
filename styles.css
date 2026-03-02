@@ -329,7 +329,7 @@ body:has(.single-post-view) .topbarRight {
   margin: 12px 0 !important;
 }
 
-/* --- FRAMER STYLE IMAGE BORDER --- */
+/* --- FRAMER STYLE IMAGE BORDER RESTORED --- */
 .tumblrBody figure img, 
 .tumblrBody img { 
   display: block; 
@@ -338,6 +338,7 @@ body:has(.single-post-view) .topbarRight {
   margin: 16px 0; 
   cursor: zoom-in; 
 
+  /* The actual Framer Glass padding and border */
   padding: 6px; 
   background: rgba(255, 255, 255, 0.4); 
   border: 1px solid rgba(0, 0, 0, 0.04); 
