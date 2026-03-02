@@ -129,7 +129,6 @@ a:hover, button:hover {
   align-items: baseline;
 }
 
-/* FIX: Back to your original, clean, non-uppercase takuya styling */
 .brandName {
   font-size: 13px;
   font-weight: 500;
@@ -247,7 +246,6 @@ body:has(.single-post-view) .topbarRight {
 
 /* ========================================================= */
 
-/* FIX: Set top padding back to 0 to pull the content tighter to the nav */
 .wrap { position: relative; z-index: 10; max-width: 700px; margin: 0 auto; padding: 0 18px 60px; }
 
 .feedMessage {
@@ -331,15 +329,21 @@ body:has(.single-post-view) .topbarRight {
   margin: 12px 0 !important;
 }
 
-/* FIX: Removed the Framer styling entirely. Back to clean, edge-to-edge images */
+/* --- FRAMER STYLE IMAGE BORDER --- */
 .tumblrBody figure img, 
 .tumblrBody img { 
   display: block; 
   width: 100%; 
   height: auto; 
-  border-radius: 14px;
   margin: 16px 0; 
   cursor: zoom-in; 
+
+  padding: 6px; 
+  background: rgba(255, 255, 255, 0.4); 
+  border: 1px solid rgba(0, 0, 0, 0.04); 
+  border-radius: 16px; 
+  
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06); 
 }
 
 .tumblrPhotoGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 12px 0; }
