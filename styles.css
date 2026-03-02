@@ -129,12 +129,13 @@ a:hover, button:hover {
   align-items: baseline;
 }
 
-.brandName { 
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: .28em;
-  text-transform: uppercase;
-  color: var(--muted); 
+/* FIX: Back to your original, clean, non-uppercase takuya styling */
+.brandName {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .01em;
+  text-transform: none;
+  color: var(--muted);
 }
 
 .brandRow {
@@ -206,7 +207,6 @@ a:hover, button:hover {
 .catLabel { font-style: italic; opacity: 0.7; }
 .catBtn.active { color: var(--accent); } 
 
-
 /* =========================================================
    UI FADING & HIDING LOGIC (Newest vs Categories)
 ========================================================= */
@@ -247,7 +247,8 @@ body:has(.single-post-view) .topbarRight {
 
 /* ========================================================= */
 
-.wrap { position: relative; z-index: 10; max-width: 700px; margin: 0 auto; padding: 24px 18px 60px; }
+/* FIX: Set top padding back to 0 to pull the content tighter to the nav */
+.wrap { position: relative; z-index: 10; max-width: 700px; margin: 0 auto; padding: 0 18px 60px; }
 
 .feedMessage {
   color: var(--muted);
@@ -318,8 +319,8 @@ body:has(.single-post-view) .topbarRight {
 .tumblrPost:hover .tumblrShareInline, .tumblrPost:hover .tumblrPostDate { opacity: 1; }
 .tumblrShareInline { text-decoration: underline; text-underline-offset: 3px; }
 
-.tumblrBody { color: var(--muted); margin-top: 10px; line-height: 1.6; overflow-wrap: anywhere; }
-.tumblrBody h1, .tumblrBody h2, .tumblrBody h3 { font-weight: 600; font-size: 13px; margin: 0 0 10px; }
+.tumblrBody { font-size: 13px; color: var(--muted); margin-top: 10px; line-height: 1.6; overflow-wrap: anywhere; }
+.tumblrBody h1, .tumblrBody h2, .tumblrBody h3 { font-weight: 600; font-size: 14px; margin: 0 0 10px; }
 .tumblrBody p { margin: 0 0 10px; }
 .tumblrBody blockquote { margin: 10px 0; padding-left: 12px; border-left: 2px solid rgba(0,0,0,.12); opacity: .9; }
 .tumblrBody a { text-decoration: underline; text-underline-offset: 3px; }
@@ -330,21 +331,15 @@ body:has(.single-post-view) .topbarRight {
   margin: 12px 0 !important;
 }
 
-/* --- FRAMER STYLE IMAGE BORDER --- */
+/* FIX: Removed the Framer styling entirely. Back to clean, edge-to-edge images */
 .tumblrBody figure img, 
 .tumblrBody img { 
   display: block; 
   width: 100%; 
   height: auto; 
+  border-radius: 14px;
   margin: 16px 0; 
   cursor: zoom-in; 
-
-  padding: 6px; 
-  background: rgba(255, 255, 255, 0.4); 
-  border: 1px solid rgba(0, 0, 0, 0.04); 
-  border-radius: 16px; 
-  
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06); 
 }
 
 .tumblrPhotoGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 12px 0; }
