@@ -57,6 +57,34 @@ body::before {
   );
 }
 
+.bpmGhost {
+  position: fixed;
+  bottom: -0.15em;
+  right: -0.02em;
+  font-size: clamp(100px, 18vw, 200px);
+  font-weight: 800;
+  color: rgba(0,0,0,.045);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  letter-spacing: -0.04em;
+  transition: color 1s ease;
+}
+.bpmGhostLabel {
+  position: fixed;
+  bottom: clamp(80px, 14vw, 160px);
+  right: 18px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(0,0,0,.18);
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
 a, button { 
   color: inherit; 
   text-decoration: none; 
@@ -313,10 +341,12 @@ body:has(.single-post-view) .topbarRight {
   cursor: zoom-in; 
   border-radius: 12px; 
   
-  box-shadow: 
-    inset 0 0 0 2px rgba(255, 255, 255, 0.4), 
-    0 0 0 1px rgba(0, 0, 0, 0.05), 
-    0 12px 32px rgba(0, 0, 0, 0.08); 
+  /* 1. The Framer glass highlight pushed INSIDE the image via negative offset */
+  outline: 2px solid rgba(255, 255, 255, 0.24); 
+  outline-offset: -2px;
+  
+  /* 2. ONLY the soft drop shadow. Removed the 1px dark outer line that was bleeding outward. */
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08); 
 }
 
 .tumblrPhotoGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 12px 0; }
