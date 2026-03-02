@@ -4,8 +4,6 @@
   --muted: rgba(0,0,0,.42);
   --line: rgba(0,0,0,.08);
   --accent: #d94f3d;
-  --mono: 'DM Mono', monospace;
-  --display: 'Syne', sans-serif;
 }
 
 *{ box-sizing:border-box; }
@@ -18,10 +16,9 @@ body {
   margin:0;
   min-height: 100vh;
   color: var(--text);
-  font-family: var(--mono);
-  font-size: 12px;
-  line-height: 1.6;
-  font-weight: 300;
+  /* Restored your clean System Fonts */
+  font: 13px/1.6 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  font-weight: 400;
 }
 
 body::before {
@@ -61,12 +58,10 @@ body::before {
   );
 }
 
-/* ── GHOST BPM ── */
 .bpmGhost {
   position: fixed;
   bottom: -0.15em;
   right: -0.02em;
-  font-family: var(--display);
   font-size: clamp(100px, 18vw, 200px);
   font-weight: 800;
   color: rgba(0,0,0,.045);
@@ -81,7 +76,6 @@ body::before {
   position: fixed;
   bottom: clamp(80px, 14vw, 160px);
   right: 18px;
-  font-family: var(--mono);
   font-size: 10px;
   letter-spacing: .18em;
   text-transform: uppercase;
@@ -136,9 +130,8 @@ a:hover, button:hover {
 }
 
 .brandName { 
-  font-family: var(--display);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: .28em;
   text-transform: uppercase;
   color: var(--muted); 
@@ -160,7 +153,6 @@ a:hover, button:hover {
   color: var(--muted); 
 }
 
-/* ── PULSING RED DOT ── */
 .dot {
   width: 6px;
   height: 6px;
@@ -208,14 +200,12 @@ a:hover, button:hover {
 
 .catBtn {
   flex-shrink: 0; 
-  font-family: var(--mono);
   letter-spacing: .06em;
 }
 
 .catLabel { font-style: italic; opacity: 0.7; }
-.catBtn.active { color: var(--accent); } /* Left without underline */
+.catBtn.active { color: var(--accent); } 
 
-.bpmLine { color: var(--accent); letter-spacing: .01em; }
 
 /* =========================================================
    UI FADING & HIDING LOGIC (Newest vs Categories)
@@ -269,12 +259,11 @@ body:has(.single-post-view) .topbarRight {
 .feed { border-top: 1px solid transparent; }
 
 .feedKicker { 
-  font-family: var(--mono);
   font-size: 10px;
   letter-spacing: .16em;
   text-transform: uppercase;
   color: rgba(0,0,0,.28);
-  padding: 12px 0 8px; 
+  padding: 0 0 8px; 
 }
 .feedHeader { justify-content: space-between; padding: 12px 0 14px; border-top: 1px solid rgba(0,0,0,.06); }
 .feedTitle { font-weight: 400; color: rgba(0,0,0,.70); }
@@ -283,7 +272,6 @@ body:has(.single-post-view) .topbarRight {
 .tumblrPost { padding: 16px 0; }
 .tumblrPost:first-child { padding-top: 6px; }
 
-/* Line separating standard posts */
 .tumblrFeed:not(.grid-mode) .tumblrPost {
   padding: 24px 0;
   border-bottom: 1px solid rgba(0,0,0,.06);
@@ -307,13 +295,11 @@ body:has(.single-post-view) .topbarRight {
 
 .tumblrPostTitle {
   display: inline-block;
-  font-family: var(--display);
-  font-size: 17px;
-  font-weight: 600;
-  color: rgba(0,0,0,.72);
-  line-height: 1.25;
+  font-size: 20px; 
+  font-weight: 700; 
+  color: var(--muted); 
+  line-height: 1.3;
   margin-bottom: 2px;
-  letter-spacing: -.01em;
   text-decoration: none; 
   transition: color 0.2s ease;
 }
@@ -323,8 +309,7 @@ body:has(.single-post-view) .topbarRight {
 }
 
 .tumblrShareInline, .tumblrPostDate {
-  font-family: var(--mono);
-  font-size: 10px;
+  font-size: 12px;
   opacity: 0;
   color: var(--muted); 
   transition: opacity .18s ease;
@@ -332,8 +317,8 @@ body:has(.single-post-view) .topbarRight {
 .tumblrPost:hover .tumblrShareInline, .tumblrPost:hover .tumblrPostDate { opacity: 1; }
 .tumblrShareInline { text-decoration: underline; text-underline-offset: 3px; }
 
-.tumblrBody { font-family: var(--mono); font-size: 12px; font-weight: 300; color: var(--muted); margin-top: 10px; line-height: 1.7; overflow-wrap: anywhere; }
-.tumblrBody h1, .tumblrBody h2, .tumblrBody h3 { font-weight: 600; font-size: 13px; margin: 0 0 10px; }
+.tumblrBody { font-size: 13px; color: var(--muted); margin-top: 10px; line-height: 1.6; overflow-wrap: anywhere; }
+.tumblrBody h1, .tumblrBody h2, .tumblrBody h3 { font-weight: 600; font-size: 14px; margin: 0 0 10px; }
 .tumblrBody p { margin: 0 0 10px; }
 .tumblrBody blockquote { margin: 10px 0; padding-left: 12px; border-left: 2px solid rgba(0,0,0,.12); opacity: .9; }
 .tumblrBody a { text-decoration: underline; text-underline-offset: 3px; }
@@ -344,28 +329,32 @@ body:has(.single-post-view) .topbarRight {
   margin: 12px 0 !important;
 }
 
+/* --- FRAMER STYLE IMAGE BORDER --- */
 .tumblrBody figure img, 
 .tumblrBody img { 
   display: block; 
   width: 100%; 
   height: auto; 
-  border-radius: 12px;
   margin: 16px 0; 
   cursor: zoom-in; 
-  border: 1px solid rgba(0, 0, 0, 0.14);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08), 0 12px 32px rgba(0, 0, 0, 0.12);
+
+  /* Uses padding to create the translucent inner frame */
+  padding: 6px; 
+  background: rgba(255, 255, 255, 0.4); 
+  border: 1px solid rgba(0, 0, 0, 0.04); 
+  border-radius: 16px; 
+  
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06); 
 }
 
 .tumblrPhotoGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 12px 0; }
 
-.tumblrSignoff { font-family: var(--mono); font-style: italic; letter-spacing: .04em; margin-top: 12px; text-align: center; color: rgba(0,0,0,.55); }
+.tumblrSignoff { margin-top: 12px; text-align: center; color: rgba(0,0,0,.55); }
 .tumblrSignoff a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 
-/* --- FROSTED PAGER BUTTONS --- */
 .tumblrPager { justify-content: space-between; gap: 12px; padding: 18px 0 4px; margin-top: 14px; }
 .tumblrPager .spacer { flex: 1; }
 .tumblrPager button { 
-  font-family: var(--mono);
   background: rgba(255, 255, 255, 0.4); 
   backdrop-filter: blur(12px); 
   -webkit-backdrop-filter: blur(12px);
@@ -390,9 +379,7 @@ body:has(.single-post-view) .topbarRight {
   box-shadow: none;
 }
 
-/* --- CLEAN TEXT BACK BUTTON --- */
 .yzyBackBtn {
-  font-family: var(--mono);
   display: block;
   margin: 40px auto 32px;
   text-align: center;
@@ -408,7 +395,6 @@ body:has(.single-post-view) .topbarRight {
   color: var(--accent);
 }
 
-/* --- FROSTED CONTEXT MENU --- */
 .yzy-context-menu {
   position: fixed;
   display: none; 
@@ -424,11 +410,10 @@ body:has(.single-post-view) .topbarRight {
   min-width: 160px;
 }
 .yzy-context-menu button {
-  font-family: var(--mono);
   text-align: left;
   padding: 8px 16px;
   color: var(--text);
-  font-size: 11px;
+  font-size: 13px;
   border-radius: 8px; 
   transition: background 0.2s, transform 0.2s, color 0.2s;
 }
@@ -438,7 +423,6 @@ body:has(.single-post-view) .topbarRight {
   transform: translateX(4px); 
 }
 
-/* --- LIGHTBOX --- */
 #imgLightbox { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 9999; background: rgba(0,0,0,.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); padding: 24px; }
 #imgLightbox.open { display: flex; }
 #imgLightbox .lbInner { max-width: min(1200px, 96vw); max-height: 92vh; display: grid; gap: 10px; justify-items: end; }
@@ -455,14 +439,12 @@ body:has(.single-post-view) .topbarRight {
 }
 #imgLightbox .lbClose:hover { background: rgba(255,255,255,.25); }
 
-/* --- GOODREADS --- */
-.goodreads { margin-top: 6px; }
-.goodreadsWidget { margin-top: 10px; }
+.goodreads { margin-bottom: 24px; }
+.goodreadsWidget { margin-top: 6px; }
 .goodreadsWidget .gr_grid_container { width: 100% !important; }
 .goodreadsWidget .gr_grid_book_container { display: inline-block !important; width: 39px !important; height: 60px !important; margin: 0 10px 10px 0 !important; padding: 0 !important; float: none !important; }
 .goodreadsWidget .gr_grid_book_container img { width: 39px !important; height: 60px !important; object-fit: cover; border-radius: 6px; display: block; }
 
-/* --- THOUGHTS GRID (Frosted Glass) --- */
 .tumblrFeed.grid-mode {
   display: grid; 
   grid-template-columns: repeat(3, 1fr); 
@@ -508,7 +490,6 @@ body:has(.single-post-view) .topbarRight {
 }
 
 .tumblrFeed.grid-mode .tumblrPostTitle {
-  font-family: var(--display);
   font-size: 15px; 
   font-weight: 600;
   letter-spacing: -.01em;
@@ -525,7 +506,6 @@ body:has(.single-post-view) .topbarRight {
   margin-top: 16px;
 }
 
-/* --- RESPONSIVE & MOBILE --- */
 @media (max-width: 768px) {
   body:not(.is-newest):not(.is-single-post) .inlineSocials,
   body:not(.is-newest):not(.is-single-post) .statusRow,
