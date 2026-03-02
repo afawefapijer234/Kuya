@@ -57,6 +57,34 @@ body::before {
   );
 }
 
+.bpmGhost {
+  position: fixed;
+  bottom: -0.15em;
+  right: -0.02em;
+  font-size: clamp(100px, 18vw, 200px);
+  font-weight: 800;
+  color: rgba(0,0,0,.045);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  letter-spacing: -0.04em;
+  transition: color 1s ease;
+}
+.bpmGhostLabel {
+  position: fixed;
+  bottom: clamp(80px, 14vw, 160px);
+  right: 18px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(0,0,0,.18);
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
 a, button { 
   color: inherit; 
   text-decoration: none; 
@@ -303,7 +331,7 @@ body:has(.single-post-view) .topbarRight {
   margin: 12px 0 !important;
 }
 
-/* --- FRAMER STYLE IMAGE BORDER RESTORED --- */
+/* --- FRAMER STYLE INNER BORDER HIGHLIGHT --- */
 .tumblrBody figure img, 
 .tumblrBody img { 
   display: block; 
@@ -311,14 +339,15 @@ body:has(.single-post-view) .topbarRight {
   height: auto; 
   margin: 16px 0; 
   cursor: zoom-in; 
-
-  /* The actual Framer Glass padding and border */
-  padding: 6px; 
-  background: rgba(255, 255, 255, 0.4); 
-  border: 1px solid rgba(0, 0, 0, 0.04); 
-  border-radius: 16px; 
+  border-radius: 14px; 
   
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06); 
+  /* The bright inner glass lip */
+  border: 1px solid rgba(255, 255, 255, 0.25); 
+  
+  /* Thin dark outer line to frame the highlight, plus the drop shadow */
+  box-shadow: 
+    0 0 0 1px rgba(0, 0, 0, 0.05), 
+    0 12px 32px rgba(0, 0, 0, 0.08); 
 }
 
 .tumblrPhotoGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 12px 0; }
