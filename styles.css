@@ -331,7 +331,7 @@ body:has(.single-post-view) .topbarRight {
   margin: 12px 0 !important;
 }
 
-/* --- FRAMER STYLE INNER BORDER HIGHLIGHT --- */
+/* --- THE FIX: FRAMER STYLE INNER OVERLAY BORDER --- */
 .tumblrBody figure img, 
 .tumblrBody img { 
   display: block; 
@@ -339,12 +339,13 @@ body:has(.single-post-view) .topbarRight {
   height: auto; 
   margin: 16px 0; 
   cursor: zoom-in; 
-  border-radius: 14px; 
+  border-radius: 12px; 
   
-  /* The bright inner glass lip */
-  border: 1px solid rgba(255, 255, 255, 0.25); 
+  /* Draws the translucent glass highlight INSIDE the image, overlaying the photo */
+  outline: 1px solid rgba(255, 255, 255, 0.35); 
+  outline-offset: -1px;
   
-  /* Thin dark outer line to frame the highlight, plus the drop shadow */
+  /* Thin dark outer line to frame it, plus the drop shadow */
   box-shadow: 
     0 0 0 1px rgba(0, 0, 0, 0.05), 
     0 12px 32px rgba(0, 0, 0, 0.08); 
