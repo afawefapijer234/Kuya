@@ -34,11 +34,7 @@ const yearEl = document.getElementById("year");
 const statusElTop = document.getElementById("statusMsg");
 
 const STATUS_ITEMS = [
-  { mode: "says", text: "san q berry muchee..." },
-  { mode: "is", text: "currently using the bathroom" },
-  { mode: "is", text: "currently working out" },
-  { mode: "is", text: "shopping for new clothes" },
-  { mode: "is", text: "recording a new video" },
+  { mode: "is", text: "Designing objects, images, and worlds." },
 ];
 
 /* =========================================================
