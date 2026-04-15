@@ -17,6 +17,7 @@ const GOODREADS_PROFILE_URL = "https://www.goodreads.com/takuyakitano";
 ========================================================= */
 
 const ghostEl = document.getElementById("bpmGhost");
+const bpmEl = document.getElementById("bpm");
 const clockEl = document.getElementById("clock");
 const tzEl = document.getElementById("tz");
 const statusEl = document.getElementById("status");
@@ -375,6 +376,7 @@ function tickBpm(){
   const shown = Math.round(bpmValue);
 
   if(ghostEl) ghostEl.textContent = shown;
+  if(bpmEl) bpmEl.textContent = shown;
 
   if(dot){
     const pulse = 0.95 + (shown - 60) / 260;
