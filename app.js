@@ -702,6 +702,42 @@ function buildTumblrPostElement(p){
     }
   });
 
+  // 3D tilt effect (grid mode only)
+  post.addEventListener("mousemove", (e) => {
+    const feed = document.getElementById("tumblrFeed");
+    if(!feed || !feed.classList.contains("grid-mode")) return;
+
+    const rect = post.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = (e.clientX - cx) / (rect.width / 2);
+    const dy = (e.clientY - cy) / (rect.height / 2);
+
+    const rotY =  dx * 10;
+    const rotX = -dy * 10;
+
+    post.style.transform = `perspective(600px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-2px)`;
+    post.style.transition = "transform 0.08s ease";
+
+    let glare = post.querySelector(".tiltGlare");
+    if(!glare){
+      glare = document.createElement("div");
+      glare.className = "tiltGlare";
+      post.appendChild(glare);
+    }
+    const glareX = (dx + 1) / 2 * 100;
+    const glareY = (dy + 1) / 2 * 100;
+    glare.style.background = `radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255,255,255,0.18) 0%, transparent 70%)`;
+    glare.style.opacity = "1";
+  });
+
+  post.addEventListener("mouseleave", () => {
+    post.style.transform = "";
+    post.style.transition = "transform 0.5s cubic-bezier(0.23,1,0.32,1), background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease";
+    const glare = post.querySelector(".tiltGlare");
+    if(glare) glare.style.opacity = "0";
+  });
+
   const head = document.createElement("div");
   head.className = "tumblrHead";
 
