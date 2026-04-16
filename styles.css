@@ -373,9 +373,7 @@ body:has(.single-post-view) .topbarRight {
 .tumblrBody > img,
 .tumblrBody p > img,
 .tumblrPhotoGrid img {
-  outline: 5px solid rgba(255, 255, 255, 0.24);
-  outline-offset: -5px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+  box-shadow: inset 0 0 0 5px rgba(255, 255, 255, 0.24), 0 12px 32px rgba(0, 0, 0, 0.08);
 }
 
 .tumblrPhotoGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 12px 0; }
