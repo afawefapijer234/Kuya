@@ -453,11 +453,29 @@ function bindZoomableImages(container){
     if(im.dataset.zoomBound === "1") return;
     im.dataset.zoomBound = "1";
     im.style.cursor = "zoom-in";
+    im.style.willChange = "transform";
+    im.style.transition = "transform 0.5s cubic-bezier(0.23,1,0.32,1)";
+
     im.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       const src = im.currentSrc || im.src;
       openLightbox(src, im.alt || "");
+    });
+
+    im.addEventListener("mousemove", (e) => {
+      const rect = im.getBoundingClientRect();
+      const dx = (e.clientX - (rect.left + rect.width  / 2)) / (rect.width  / 2);
+      const dy = (e.clientY - (rect.top  + rect.height / 2)) / (rect.height / 2);
+      const rotY =  dx * 8;
+      const rotX = -dy * 8;
+      im.style.transform = `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
+      im.style.transition = "transform 0.08s ease";
+    });
+
+    im.addEventListener("mouseleave", () => {
+      im.style.transform = "";
+      im.style.transition = "transform 0.5s cubic-bezier(0.23,1,0.32,1)";
     });
   });
 }
