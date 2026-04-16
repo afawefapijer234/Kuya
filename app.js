@@ -463,19 +463,22 @@ function bindZoomableImages(container){
       openLightbox(src, im.alt || "");
     });
 
+    // tilt the figure wrapper if present so ::after border rides along
+    const tiltTarget = (im.parentElement && im.parentElement.tagName === "FIGURE") ? im.parentElement : im;
+    tiltTarget.style.willChange = "transform";
+    tiltTarget.style.transition = "transform 0.5s cubic-bezier(0.23,1,0.32,1)";
+
     im.addEventListener("mousemove", (e) => {
-      const rect = im.getBoundingClientRect();
+      const rect = tiltTarget.getBoundingClientRect();
       const dx = (e.clientX - (rect.left + rect.width  / 2)) / (rect.width  / 2);
       const dy = (e.clientY - (rect.top  + rect.height / 2)) / (rect.height / 2);
-      const rotY =  dx * 8;
-      const rotX = -dy * 8;
-      im.style.transform = `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(1.02)`;
-      im.style.transition = "transform 0.08s ease";
+      tiltTarget.style.transform = `perspective(800px) rotateX(${-dy * 8}deg) rotateY(${dx * 8}deg) scale(1.02)`;
+      tiltTarget.style.transition = "transform 0.08s ease";
     });
 
     im.addEventListener("mouseleave", () => {
-      im.style.transform = "";
-      im.style.transition = "transform 0.5s cubic-bezier(0.23,1,0.32,1)";
+      tiltTarget.style.transform = "";
+      tiltTarget.style.transition = "transform 0.5s cubic-bezier(0.23,1,0.32,1)";
     });
   });
 }
