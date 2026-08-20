@@ -6,22 +6,19 @@
   <title>KUYA</title>
   <meta name="description" content="KUYA — feed." />
   <meta name="theme-color" content="#fbfaf7" />
-  
   <link rel="stylesheet" href="styles.css" />
 </head>
 
-<body class="is-newest">
+<body class="is-newest tw-layout">
   <div class="blurBorder"></div>
 
   <header class="topbar">
     <div class="topbarLeft">
-      
       <div class="brandRow">
         <a class="brandName" href="./">takuya</a>
-        
         <nav class="inlineSocials">
           <span class="divider">/</span>
-          <a href="https://youtube.com/@kuyadesign" target="_blank">yt</a>
+          <a href="https://www.youtube.com/@houseoftakuya" target="_blank">yt</a>
           <a href="https://instagram.com/kuya/" target="_blank">ig</a>
           <a href="https://discord.gg/EyzZ2HB" target="_blank">disc</a>
           <a href="https://tiktok.com/@kuya5k" target="_blank">tok</a>
@@ -34,48 +31,50 @@
       </div>
 
       <nav class="categoryNav">
-        <button class="catBtn active" data-tag="">newest</button>
-        <button class="catBtn" data-tag="thoughts">thoughts</button>
+        <button class="catBtn active" data-tag="">latest</button>
+        <button class="catBtn" data-tag="thoughts">notes</button>
+        <button class="catBtn" data-tag="essays">essays</button>
         <button class="catBtn" data-tag="design">design</button>
         <button class="catBtn" data-tag="poly">poly</button>
         <button class="catBtn" data-tag="inspo">inspo</button>
         <button class="catBtn" id="randomBtn" title="read a random memory">random 🎲</button>
+        <span class="nav-sep">—</span>
+        <a class="catBtn page-link" href="tools.html">tools</a>
+        <a class="catBtn page-link" href="library.html">library</a>
       </nav>
-
     </div>
 
     <div class="topbarRight">
       <a class="email" href="mailto:t@kuya.design">t@kuya.design</a>
-      <div class="bpmLine"><span id="bpm">—</span> bpm</div>
+      <div class="bpmLine">
+        <span class="bpm-heart">♥</span><span id="bpm">—</span> bpm
+      </div>
     </div>
   </header>
 
-<main class="wrap">
+  <main class="wrap">
+    <section class="goodreads">
+      <div class="feedKicker">currently reading→</div>
+      <div class="goodreadsWidget">
+        <div id="gr_grid_widget_1768982139"></div>
+        <script
+          src="https://www.goodreads.com/review/grid_widget/60019791.currently%20reading?cover_size=small&hide_link=true&hide_title=true&num_books=20&order=a&shelf=currently-reading&sort=date_added&widget_id=1768982139"
+          type="text/javascript"
+          charset="utf-8">
+        </script>
+      </div>
+    </section>
 
-  <section class="goodreads">
-    <div class="feedKicker">currently reading→</div>
-
-    <div class="goodreadsWidget">
-      <div id="gr_grid_widget_1768982139"></div>
-
-      <script
-        src="https://www.goodreads.com/review/grid_widget/60019791.currently%20reading?cover_size=small&hide_link=true&hide_title=true&num_books=20&order=a&shelf=currently-reading&sort=date_added&widget_id=1768982139"
-        type="text/javascript"
-        charset="utf-8">
-      </script>
-    </div>
-  </section>
-
-  <section class="feed">
-    <div class="feedKicker">new thoughts daily at 5am→</div>
-    <div id="tumblrFeed" class="tumblrFeed" aria-live="polite"></div>
-  </section>
-
-</main>
+    <section class="feed">
+      <div class="feedKicker">new thoughts daily at 5am→</div>
+      <div id="tumblrFeed" class="tumblrFeed" aria-live="polite"></div>
+    </section>
+  </main>
 
   <div id="yzyContextMenu" class="yzy-context-menu">
     <button data-action="top">back to top</button>
-    <button data-action="tag" data-tag="thoughts">thoughts</button>
+    <button data-action="tag" data-tag="thoughts">notes</button>
+    <button data-action="tag" data-tag="essays">essays</button>
     <button data-action="tag" data-tag="design">design</button>
     <button data-action="tag" data-tag="poly">poly</button>
     <button data-action="tag" data-tag="inspo">inspo</button>
