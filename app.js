@@ -8,9 +8,9 @@ const YT_CHANNEL_ID = "UCuDJUj1szS87hLRjXQKnmaA";
 const YT_CHANNEL_FALLBACK_URL = "https://www.youtube.com/@houseoftakuya";
 
 const TUMBLR_BLOG = "takuyakitano";
-const TUMBLR_PAGE_SIZE = 12; 
+const TUMBLR_PAGE_SIZE = 12;
 
-const GOODREADS_PROFILE_URL = "https://www.goodreads.com/takuyakitano"; 
+const GOODREADS_PROFILE_URL = "https://www.goodreads.com/takuyakitano";
 
 /* =========================================================
    DOM HOOKS
@@ -38,13 +38,12 @@ const STATUS_ITEMS = [
 ];
 
 /* =========================================================
-   UTILS & META DATA
+   UTILS
 ========================================================= */
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 function randInt(a, b) { return Math.floor(a + Math.random() * (b - a + 1)); }
 function randFloat(a, b) { return a + Math.random() * (b - a); }
-
 function pad(n){ return String(n).padStart(2, "0"); }
 
 function decodeXml(s){
@@ -57,10 +56,7 @@ function decodeXml(s){
 }
 
 function stripHtml(s){
-  return String(s || "")
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  return String(s || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
 
 function sanitizeHtml(html){
@@ -71,6 +67,19 @@ function sanitizeHtml(html){
   return out;
 }
 
+/* Relative timestamp — Twitter-style */
+function relTime(dateStr){
+  if(!dateStr) return "";
+  const d = new Date(dateStr);
+  if(Number.isNaN(d.getTime())) return "";
+  const s = Math.floor((Date.now() - d.getTime()) / 1000);
+  if(s < 60)    return s + 's';
+  if(s < 3600)  return Math.floor(s / 60) + 'm';
+  if(s < 86400) return Math.floor(s / 3600) + 'h';
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+/* Keep formatDate for any legacy usage */
 function formatDate(pubDate){
   if(!pubDate) return "";
   const d = new Date(pubDate);
@@ -79,12 +88,7 @@ function formatDate(pubDate){
 }
 
 function slugify(s){
-  return String(s || "")
-    .toLowerCase()
-    .replace(/&/g, " and ")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80);
+  return String(s || "").toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 }
 
 function deriveTitle(post, inner){
@@ -92,7 +96,6 @@ function deriveTitle(post, inner){
   if(t1) return t1;
   const t2 = stripHtml(post?.title || "");
   if(t2) return t2;
-
   const bodyText = stripHtml(inner?.html || "");
   if(!bodyText) return "post";
   return bodyText.slice(0, 60);
@@ -111,7 +114,7 @@ function parsePrettyHash(){
 
 function getTagFromHash() {
   const h = (location.hash || "").replace("#", "");
-  const validTags = ["thoughts", "design", "poly", "inspo"];
+  const validTags = ["thoughts", "essays", "design", "poly", "inspo"];
   return validTags.includes(h) ? h : null;
 }
 
@@ -137,44 +140,28 @@ async function copyToClipboard(text){
       const ok = document.execCommand("copy");
       document.body.removeChild(ta);
       return ok;
-    }catch{
-      return false;
-    }
+    }catch{ return false; }
   }
 }
 
 function extractTitleFromBody(html) {
   if (!html) return { title: null, body: html };
-
   const temp = document.createElement("div");
   temp.innerHTML = html;
-
   const firstEl = temp.firstElementChild;
   if (!firstEl) return { title: null, body: html };
-
   const validTags = ["P", "H1", "H2", "H3", "H4", "H5", "H6"];
-  
   if (validTags.includes(firstEl.tagName)) {
     const text = firstEl.textContent.trim();
     if (!text) return { title: null, body: html };
-
     const tooLong = text.length > 80;
     const hasLineBreaks = /\n/.test(text);
     const looksLikeList = /^[-•*]\s/.test(text);
     const tooManyDashes = (text.match(/\s-\s/g) || []).length >= 2;
-
-    if (tooLong || hasLineBreaks || looksLikeList || tooManyDashes) {
-      return { title: null, body: html };
-    }
-
+    if (tooLong || hasLineBreaks || looksLikeList || tooManyDashes) return { title: null, body: html };
     firstEl.remove();
-
-    return {
-      title: text,
-      body: temp.innerHTML.trim()
-    };
+    return { title: text, body: temp.innerHTML.trim() };
   }
-
   return { title: null, body: html };
 }
 
@@ -183,74 +170,45 @@ function updateMetaTags(titleText, descText){
   const t = String(titleText || "").trim();
   const title = t ? `${t} — ${base}` : `${base} — feed.`;
   const desc = descText || "KUYA — feed.";
-  
   document.title = title;
-
   let metaDesc = document.querySelector('meta[name="description"]');
   if (metaDesc) metaDesc.content = desc;
-
   let ogTitle = document.querySelector('meta[property="og:title"]');
-  if (!ogTitle) {
-    ogTitle = document.createElement('meta');
-    ogTitle.setAttribute('property', 'og:title');
-    document.head.appendChild(ogTitle);
-  }
+  if (!ogTitle) { ogTitle = document.createElement('meta'); ogTitle.setAttribute('property', 'og:title'); document.head.appendChild(ogTitle); }
   ogTitle.content = title;
-
   let ogDesc = document.querySelector('meta[property="og:description"]');
-  if (!ogDesc) {
-    ogDesc = document.createElement('meta');
-    ogDesc.setAttribute('property', 'og:description');
-    document.head.appendChild(ogDesc);
-  }
+  if (!ogDesc) { ogDesc = document.createElement('meta'); ogDesc.setAttribute('property', 'og:description'); document.head.appendChild(ogDesc); }
   ogDesc.content = desc;
 }
 
 /* =========================================================
-   TYPEWRITER 
+   TYPEWRITER
 ========================================================= */
 
 function isPunct(ch){
-  return ch === "." || ch === "!" || ch === "?" || ch === "," ||
-    ch === ";" || ch === ":" || ch === "…" || ch === "-";
+  return ch === "." || ch === "!" || ch === "?" || ch === "," || ch === ";" || ch === ":" || ch === "…" || ch === "-";
 }
-function isSpace(ch){ return ch === " " || ch === "\n" || ch === "\t"; }
 
 async function runTypewriter(el, items) {
   const leadEl = document.getElementById("statusLead");
-
   while (true) {
     for (const item of items) {
-      if (leadEl) {
-        leadEl.textContent = item.mode === "says" ? "says:" : "is";
-      }
-
+      if (leadEl) leadEl.textContent = item.mode === "says" ? "says:" : "is";
       const full = item.text;
-
       el.textContent = "";
       const thinkPause = () => (Math.random() < 0.12 ? 180 + Math.random() * 320 : 0);
-      
       for (let i = 0; i < full.length; i++) {
         el.textContent += full[i];
         const ch = full[i];
-        const base = 38 + Math.random() * 60; 
-        const extra =
-          ch === "." ? 180 + Math.random() * 220 :
-          ch === "," ? 120 + Math.random() * 180 :
-          ch === " " ? 0 :
-          0;
-
+        const base = 38 + Math.random() * 60;
+        const extra = ch === "." ? 180 + Math.random() * 220 : ch === "," ? 120 + Math.random() * 180 : 0;
         await sleep(base + extra + thinkPause());
       }
-
       await sleep(900 + Math.random() * 900);
-      
       while (el.textContent.length) {
         el.textContent = el.textContent.slice(0, -1);
-        const base = 20 + Math.random() * 45;
-        await sleep(base + thinkPause());
+        await sleep(20 + Math.random() * 45 + thinkPause());
       }
-
       await sleep(250 + Math.random() * 350);
     }
   }
@@ -264,22 +222,16 @@ function updateClock(){
   if(!clockEl) return;
   const d = new Date();
   clockEl.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  try{
-    if(tzEl) tzEl.textContent = Intl.DateTimeFormat().resolvedOptions().timeZone || "local";
-  }catch{
-    if(tzEl) tzEl.textContent = "local";
-  }
+  try{ if(tzEl) tzEl.textContent = Intl.DateTimeFormat().resolvedOptions().timeZone || "local"; }
+  catch{ if(tzEl) tzEl.textContent = "local"; }
 }
 
 function updateOnline(){
   const on = navigator.onLine;
   if(statusEl) statusEl.textContent = on ? "online" : "offline";
   if(!dot) return;
-  if(on) {
-    dot.classList.remove('offline');
-  } else {
-    dot.classList.add('offline');
-  }
+  if(on) { dot.classList.remove('offline'); }
+  else { dot.classList.add('offline'); }
 }
 
 let bpmValue = 72;
@@ -288,55 +240,28 @@ let drift = 0;
 let lastTick = performance.now();
 
 const SCHEDULE = {
-  sleep:   { min: 35,  max: 45  }, 
-  day:     { min: 60,  max: 80  }, 
-  workout: { min: 120, max: 180 }  
+  sleep:   { min: 35,  max: 45  },
+  day:     { min: 60,  max: 80  },
+  workout: { min: 120, max: 180 }
 };
 
-function smoothstep(t){
-  t = Math.max(0, Math.min(1, t));
-  return t*t*(3 - 2*t);
-}
+function smoothstep(t){ t = Math.max(0, Math.min(1, t)); return t*t*(3 - 2*t); }
 
 function getDailyTargetParams(){
   const now = new Date();
   const h = now.getHours() + Math.max(0, now.getMinutes())/60;
-
   const inWorkout = (h >= 20 && h < 21);
   const inSleep = (h >= 21 || h < 6);
   const inDay = (!inWorkout && !inSleep);
-
   let band = inWorkout ? SCHEDULE.workout : (inSleep ? SCHEDULE.sleep : SCHEDULE.day);
   let target = randFloat(band.min, band.max);
-
-  if(h >= 19.5 && h < 20){
-    const t = smoothstep((h - 19.5) / 0.5);
-    const dayTarget = randFloat(SCHEDULE.day.min, SCHEDULE.day.max);
-    const woTarget = randFloat(SCHEDULE.workout.min, SCHEDULE.workout.max);
-    target = dayTarget + t * (woTarget - dayTarget);
-  }
-
-  if(h >= 21 && h < 21.5){
-    const t = smoothstep((h - 21) / 0.5);
-    const woTarget = randFloat(SCHEDULE.workout.min, SCHEDULE.workout.max);
-    const slTarget = randFloat(SCHEDULE.sleep.min, SCHEDULE.sleep.max);
-    target = woTarget + t * (slTarget - woTarget);
-  }
-
-  if(h >= 5.5 && h < 6){
-    const t = smoothstep((h - 5.5) / 0.5);
-    const slTarget = randFloat(SCHEDULE.sleep.min, SCHEDULE.sleep.max);
-    const dayTarget = randFloat(SCHEDULE.day.min, SCHEDULE.day.max);
-    target = slTarget + t * (dayTarget - slTarget);
-  }
-
-  let tau = 5;       
-  let maxStep = 4.0; 
-
-  if(inSleep){ tau = 42; maxStep = 1.1; } 
-  if(inDay){ tau = 4; maxStep = 5.0; }    
-  if(inWorkout){ tau = 2; maxStep = 10.0; } 
-
+  if(h >= 19.5 && h < 20){ const t = smoothstep((h - 19.5) / 0.5); target = randFloat(SCHEDULE.day.min, SCHEDULE.day.max) + t * (randFloat(SCHEDULE.workout.min, SCHEDULE.workout.max) - randFloat(SCHEDULE.day.min, SCHEDULE.day.max)); }
+  if(h >= 21 && h < 21.5){ const t = smoothstep((h - 21) / 0.5); target = randFloat(SCHEDULE.workout.min, SCHEDULE.workout.max) + t * (randFloat(SCHEDULE.sleep.min, SCHEDULE.sleep.max) - randFloat(SCHEDULE.workout.min, SCHEDULE.workout.max)); }
+  if(h >= 5.5 && h < 6){ const t = smoothstep((h - 5.5) / 0.5); target = randFloat(SCHEDULE.sleep.min, SCHEDULE.sleep.max) + t * (randFloat(SCHEDULE.day.min, SCHEDULE.day.max) - randFloat(SCHEDULE.sleep.min, SCHEDULE.sleep.max)); }
+  let tau = 5; let maxStep = 4.0;
+  if(inSleep){ tau = 42; maxStep = 1.1; }
+  if(inDay){ tau = 4; maxStep = 5.0; }
+  if(inWorkout){ tau = 2; maxStep = 10.0; }
   return { target, tau, maxStep, inWorkout, inDay, inSleep };
 }
 
@@ -344,44 +269,29 @@ function tickBpm(){
   const nowT = performance.now();
   const dt = Math.min(0.2, Math.max(0.02, (nowT - lastTick) / 1000));
   lastTick = nowT;
-
-  drift += (Math.random() - 0.5) * 0.5; 
+  drift += (Math.random() - 0.5) * 0.5;
   drift = Math.max(-6, Math.min(6, drift));
-
   const { target, tau, maxStep, inWorkout, inDay } = getDailyTargetParams();
-
   const scrollBoost = Math.min(6, window.scrollY / 180);
-  
   const micro = (Math.random() - 0.5) * (inWorkout ? 6.0 : inDay ? 4.0 : 1.0);
-
   const desired = target + drift + scrollBoost + micro;
-
   const alpha = 1 - Math.exp(-dt / tau);
   let next = bpmValue + alpha * (desired - bpmValue);
-
   const maxDelta = maxStep * dt;
   const delta = next - bpmValue;
   if(delta > maxDelta) next = bpmValue + maxDelta;
   if(delta < -maxDelta) next = bpmValue - maxDelta;
-
   bpmVel = 0.85 * bpmVel + 0.15 * (next - bpmValue);
   bpmValue += bpmVel;
-
   bpmValue = Math.max(32, Math.min(190, bpmValue));
-
   const shown = Math.round(bpmValue);
-
   if(ghostEl) ghostEl.textContent = shown;
   if(bpmEl) bpmEl.textContent = shown;
-
-  if(dot){
-    const pulse = 0.95 + (shown - 60) / 260;
-    dot.style.transform = `scale(${pulse})`;
-  }
+  if(dot){ const pulse = 0.95 + (shown - 60) / 260; dot.style.transform = `scale(${pulse})`; }
 }
 
 /* =========================================================
-   FETCH 
+   FETCH
 ========================================================= */
 
 async function fetchRaw(url){
@@ -396,37 +306,30 @@ async function fetchRaw(url){
 }
 
 /* =========================================================
-   LIGHTBOX 
+   LIGHTBOX
 ========================================================= */
 
 function ensureLightbox(){
   let lb = document.getElementById("imgLightbox");
   if(lb) return lb;
-
   lb = document.createElement("div");
   lb.id = "imgLightbox";
   lb.setAttribute("role", "dialog");
   lb.setAttribute("aria-modal", "true");
-
   const inner = document.createElement("div");
   inner.className = "lbInner";
-
   const closeBtn = document.createElement("button");
   closeBtn.type = "button";
   closeBtn.className = "lbClose";
   closeBtn.textContent = "Close";
   closeBtn.addEventListener("click", closeLightbox);
-
   const img = document.createElement("img");
   img.alt = "";
-
   inner.appendChild(closeBtn);
   inner.appendChild(img);
   lb.appendChild(inner);
-
   lb.addEventListener("click", (e) => { if(e.target === lb) closeLightbox(); });
   document.addEventListener("keydown", (e) => { if(e.key === "Escape") closeLightbox(); });
-
   document.body.appendChild(lb);
   return lb;
 }
@@ -455,19 +358,17 @@ function bindZoomableImages(container){
     im.style.cursor = "zoom-in";
     im.style.willChange = "transform";
     im.style.transition = "transform 0.5s cubic-bezier(0.23,1,0.32,1)";
-
     im.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const src = im.currentSrc || im.src;
-      openLightbox(src, im.alt || "");
+      openLightbox(im.currentSrc || im.src, im.alt || "");
     });
-
-    // tilt the figure wrapper if present so ::after border rides along
-    const tiltTarget = (im.parentElement && im.parentElement.tagName === "FIGURE") ? im.parentElement : im;
+    /* tilt: use img-cell parent if available, else figure, else img */
+    const tiltTarget =
+      (im.parentElement && im.parentElement.classList.contains("img-cell")) ? im.parentElement :
+      (im.parentElement && im.parentElement.tagName === "FIGURE") ? im.parentElement : im;
     tiltTarget.style.willChange = "transform";
     tiltTarget.style.transition = "transform 0.5s cubic-bezier(0.23,1,0.32,1)";
-
     im.addEventListener("mousemove", (e) => {
       const rect = tiltTarget.getBoundingClientRect();
       const dx = (e.clientX - (rect.left + rect.width  / 2)) / (rect.width  / 2);
@@ -475,7 +376,6 @@ function bindZoomableImages(container){
       tiltTarget.style.transform = `perspective(800px) rotateX(${-dy * 8}deg) rotateY(${dx * 8}deg) scale(1.02)`;
       tiltTarget.style.transition = "transform 0.08s ease";
     });
-
     im.addEventListener("mouseleave", () => {
       tiltTarget.style.transform = "";
       tiltTarget.style.transition = "transform 0.5s cubic-bezier(0.23,1,0.32,1)";
@@ -488,8 +388,7 @@ function bindZoomableImages(container){
 ========================================================= */
 
 function xmlAllBetween(xml, startTag, endTag){
-  const out = [];
-  let i = 0;
+  const out = []; let i = 0;
   while(true){
     const s = xml.indexOf(startTag, i);
     if(s === -1) break;
@@ -503,55 +402,35 @@ function xmlAllBetween(xml, startTag, endTag){
 
 async function loadLatest4FromRss(){
   if(!ytGrid) return;
-
   const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${YT_CHANNEL_ID}`;
   const xml = await fetchRaw(feedUrl);
-
   const name = xmlAllBetween(xml, "<name>", "</name>")[0];
   if(name && ytChannelName) ytChannelName.textContent = decodeXml(name);
-
   const entries = xml.split("<entry>").slice(1).map(s => "<entry>" + s);
   const picked = [];
-
   for(const entry of entries){
     const altLink = (entry.match(/<link[^>]+rel="alternate"[^>]+href="([^"]+)"/) || [])[1] || "";
     if(!altLink.includes("/watch?v=")) continue;
-
     const id = (entry.match(/<yt:videoId>([^<]+)<\/yt:videoId>/) || [])[1];
     const titleRaw = (entry.match(/<title>([^<]+)<\/title>/) || [])[1];
     if(!id) continue;
-
     picked.push({ id, title: decodeXml(titleRaw || "YouTube video") });
     if(picked.length >= 4) break;
   }
-
   if(!picked.length){
     const idsAll = xmlAllBetween(xml, "<yt:videoId>", "</yt:videoId>").slice(0, 4);
     const titlesAll = xmlAllBetween(xml, "<title>", "</title>").slice(0, 4).map(decodeXml);
     idsAll.forEach((id, i) => picked.push({ id, title: titlesAll[i] || "YouTube video" }));
   }
-
   if(ytCard) ytCard.href = YT_CHANNEL_FALLBACK_URL;
-
   ytGrid.innerHTML = "";
   picked.forEach(({ id, title }) => {
     const videoUrl = `https://www.youtube.com/watch?v=${id}`;
     const thumbUrl = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
-
     const a = document.createElement("a");
-    a.className = "ytItem";
-    a.href = videoUrl;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    a.title = title;
-    a.setAttribute("aria-label", title);
-
+    a.className = "ytItem"; a.href = videoUrl; a.target = "_blank"; a.rel = "noopener noreferrer"; a.title = title; a.setAttribute("aria-label", title);
     const img = document.createElement("img");
-    img.loading = "lazy";
-    img.decoding = "async";
-    img.alt = title;
-    img.src = thumbUrl;
-
+    img.loading = "lazy"; img.decoding = "async"; img.alt = title; img.src = thumbUrl;
     a.appendChild(img);
     ytGrid.appendChild(a);
   });
@@ -586,20 +465,16 @@ async function loadSubs(){
 let tumblrStart = 0;
 let tumblrTotal = null;
 let tumblrLoading = false;
-let currentTag = ""; 
+let currentTag = "";
 
 function getActivePostId(){
   const qs = new URLSearchParams(location.search);
-  const postFromQuery = qs.get("post");
-  const postFromHash = parsePrettyHash();
-  return postFromQuery || postFromHash;
+  return qs.get("post") || parsePrettyHash();
 }
 
 function tumblrJsonUrl({ start, num, id, tag }){
   const base = `https://${TUMBLR_BLOG}.tumblr.com/api/read/json`;
-  
   if(id) return `${base}?id=${encodeURIComponent(id)}`;
-
   let url = `${base}?num=${encodeURIComponent(num)}&start=${encodeURIComponent(start)}`;
   if(tag) url += `&tagged=${encodeURIComponent(tag)}`;
   return url;
@@ -614,12 +489,8 @@ function parseTumblrJsonp(text){
 
 function pickBestPhotoUrl(obj){
   const o = obj || {};
-  const keys = Object.keys(o)
-    .filter(k => /^photo-url-\d+$/i.test(k))
-    .sort((a, b) => Number(b.split("-").pop()) - Number(a.split("-").pop()));
-  for(const k of keys){
-    if(o[k]) return o[k];
-  }
+  const keys = Object.keys(o).filter(k => /^photo-url-\d+$/i.test(k)).sort((a, b) => Number(b.split("-").pop()) - Number(a.split("-").pop()));
+  for(const k of keys){ if(o[k]) return o[k]; }
   return null;
 }
 
@@ -627,39 +498,43 @@ function buildPostInner(post){
   const type = post?.type || "";
 
   if(type === "regular"){
-    const title = post["regular-title"] || "";
-    const body = post["regular-body"] || "";
-    return { title, html: sanitizeHtml(body) };
+    return { title: post["regular-title"] || "", html: sanitizeHtml(post["regular-body"] || "") };
   }
 
   if(type === "photo"){
-    const caption = post["photo-caption"] || "";
     const photos = Array.isArray(post.photos) ? post.photos : null;
     let html = "";
 
+    /* collect image srcs */
+    const srcs = [];
     if(photos && photos.length){
-      html += `<div class="tumblrPhotoGrid">`;
-      for(const p of photos){
-        const src = pickBestPhotoUrl(p) || p["photo-url-500"] || p["photo-url-400"] || "";
-        if(!src) continue;
-        html += `<img src="${src}" alt="" loading="lazy" decoding="async" />`;
+      for(const ph of photos){
+        const s = pickBestPhotoUrl(ph) || ph["photo-url-500"] || ph["photo-url-400"] || "";
+        if(s) srcs.push(s);
       }
-      html += `</div>`;
-    }else{
-      const src = pickBestPhotoUrl(post);
-      if(src) html += `<img src="${src}" alt="" loading="lazy" decoding="async" />`;
+    } else {
+      const s = pickBestPhotoUrl(post);
+      if(s) srcs.push(s);
     }
 
+    if(srcs.length){
+      const count = Math.min(srcs.length, 4);
+      html += `<div class="pimg-${count}">`;
+      for(let i = 0; i < count; i++){
+        html += `<div class="img-cell"><img src="${srcs[i]}" alt="" loading="lazy" decoding="async" /></div>`;
+      }
+      html += `</div>`;
+    }
+
+    const caption = post["photo-caption"] || "";
     if(caption) html += `<div class="tumblrCaption">${sanitizeHtml(caption)}</div>`;
     return { title: "", html };
   }
 
   if(type === "quote"){
-    const text = post["quote-text"] || "";
-    const source = post["quote-source"] || "";
     let html = "";
-    if(text) html += `<blockquote>${sanitizeHtml(text)}</blockquote>`;
-    if(source) html += `<div class="tumblrCaption">${sanitizeHtml(source)}</div>`;
+    if(post["quote-text"]) html += `<blockquote>${sanitizeHtml(post["quote-text"])}</blockquote>`;
+    if(post["quote-source"]) html += `<div class="tumblrCaption">${sanitizeHtml(post["quote-source"])}</div>`;
     return { title: "", html };
   }
 
@@ -674,78 +549,54 @@ function buildPostInner(post){
   }
 
   if(type === "chat"){
-    const title = post["chat-title"] || "";
-    const body = post["chat-body"] || "";
-    return { title, html: sanitizeHtml(body) };
+    return { title: post["chat-title"] || "", html: sanitizeHtml(post["chat-body"] || "") };
   }
 
   const fallbackTitle = post["regular-title"] || post["chat-title"] || "";
-  const fallbackBody =
-    post["regular-body"] ||
-    post["photo-caption"] ||
-    post["video-caption"] ||
-    post["audio-caption"] ||
-    post["answer-answer"] ||
-    post["answer-question"] ||
-    "";
-
+  const fallbackBody = post["regular-body"] || post["photo-caption"] || post["video-caption"] || post["audio-caption"] || post["answer-answer"] || post["answer-question"] || "";
   return { title: fallbackTitle, html: sanitizeHtml(fallbackBody) };
 }
 
 function buildNativeShareUrl(postId, title){
-  const base = getSiteBaseUrl();
-  return `${base}${prettyHashForPost(postId, title)}`;
+  return `${getSiteBaseUrl()}${prettyHashForPost(postId, title)}`;
 }
 
 function buildTumblrPostElement(p){
   const postId = String(p?.id || "");
   const inner = buildPostInner(p);
-  
+
   let title = inner.title || null;
   let body = inner.html || "";
 
-  if (!title) {
+  if(!title){
     const inferred = extractTitleFromBody(body);
     title = inferred.title;
     body = inferred.body;
   }
-  
+
   const post = document.createElement("article");
   post.className = "tumblrPost";
   post.dataset.postId = postId;
 
   post.addEventListener("click", (e) => {
     if(e.target.tagName === "A" || e.target.tagName === "BUTTON" || e.target.tagName === "IMG") return;
-    
     const feed = document.getElementById("tumblrFeed");
     if(feed && feed.classList.contains("grid-mode")){
       window.location.hash = prettyHashForPost(postId, title || deriveTitle(p, inner));
     }
   });
 
-  // 3D tilt effect (grid mode only)
+  /* 3D tilt (grid mode only) */
   post.addEventListener("mousemove", (e) => {
     const feed = document.getElementById("tumblrFeed");
     if(!feed || !feed.classList.contains("grid-mode")) return;
-
     const rect = post.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const dx = (e.clientX - cx) / (rect.width / 2);
-    const dy = (e.clientY - cy) / (rect.height / 2);
-
-    const rotY =  dx * 10;
-    const rotX = -dy * 10;
-
-    post.style.transform = `perspective(600px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-2px)`;
+    const dx = (e.clientX - (rect.left + rect.width  / 2)) / (rect.width  / 2);
+    const dy = (e.clientY - (rect.top  + rect.height / 2)) / (rect.height / 2);
+    post.style.transform = `perspective(600px) rotateX(${-dy * 10}deg) rotateY(${dx * 10}deg) translateY(-2px)`;
     post.style.transition = "transform 0.08s ease";
-
     let glare = post.querySelector(".tiltGlare");
-    if(!glare){
-      glare = document.createElement("div");
-      glare.className = "tiltGlare";
-      post.appendChild(glare);
-    }
+    if(!glare){ glare = document.createElement("div"); glare.className = "tiltGlare"; post.appendChild(glare); }
     const glareX = (dx + 1) / 2 * 100;
     const glareY = (dy + 1) / 2 * 100;
     glare.style.background = `radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255,255,255,0.18) 0%, transparent 70%)`;
@@ -754,18 +605,35 @@ function buildTumblrPostElement(p){
 
   post.addEventListener("mouseleave", () => {
     post.style.transform = "";
-    post.style.transition = "transform 0.5s cubic-bezier(0.23,1,0.32,1), background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease";
+    post.style.transition = "transform 0.5s cubic-bezier(0.23,1,0.32,1)";
     const glare = post.querySelector(".tiltGlare");
     if(glare) glare.style.opacity = "0";
   });
 
+  /* ── AVATAR (twitter layout) ── */
+  const av = document.createElement("div");
+  av.className = "post-av";
+  av.textContent = "T"; /* Replace with real photo if desired */
+  post.appendChild(av);
+
+  /* ── CONTENT WRAPPER ── */
+  const main = document.createElement("div");
+  main.className = "post-main";
+
+  /* name line (twitter layout) */
+  const twName = document.createElement("div");
+  twName.className = "tw-name";
+  twName.innerHTML = 'takuya <span class="tw-handle">@kuya.design</span>';
+  main.appendChild(twName);
+
+  /* head (title + meta) */
   const head = document.createElement("div");
   head.className = "tumblrHead";
 
   const left = document.createElement("div");
   left.className = "tumblrHeadLeft";
 
-  if (title) {
+  if(title){
     const t = document.createElement("a");
     t.className = "tumblrPostTitle";
     t.textContent = title;
@@ -776,104 +644,89 @@ function buildTumblrPostElement(p){
   const meta = document.createElement("div");
   meta.className = "tumblrMeta";
 
+  /* tag pill for current category */
+  if(currentTag){
+    const tagEl = document.createElement("span");
+    tagEl.className = "tumblrTag";
+    tagEl.textContent = currentTag === "thoughts" ? "notes" : currentTag;
+    meta.appendChild(tagEl);
+  }
+
   const dateEl = document.createElement("div");
   dateEl.className = "tumblrPostDate";
-  dateEl.textContent = formatDate(p?.date_gmt || p?.date || "");
+  dateEl.textContent = relTime(p?.date_gmt || p?.date || "");
   meta.appendChild(dateEl);
 
-  if (postId) {
+  if(postId){
     const shareBtn = document.createElement("button");
     shareBtn.className = "tumblrShareInline";
     shareBtn.type = "button";
     shareBtn.textContent = "share";
     shareBtn.addEventListener("click", async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
+      e.preventDefault(); e.stopPropagation();
       const shareUrl = buildNativeShareUrl(postId, title || deriveTitle(p, inner));
       const ok = await copyToClipboard(shareUrl);
-      if (ok) {
-        const prev = shareBtn.textContent;
-        shareBtn.textContent = "copied";
-        setTimeout(() => (shareBtn.textContent = prev), 900);
-      }
+      if(ok){ const prev = shareBtn.textContent; shareBtn.textContent = "copied"; setTimeout(() => (shareBtn.textContent = prev), 900); }
     });
     meta.appendChild(shareBtn);
   }
 
-  if(meta.childNodes.length){
-    left.appendChild(meta);
-  }
-  
-  const hasHeadLeft = left.childNodes.length > 0 && (left.textContent || "").trim().length > 0;
-  const hasHeadMeta = meta.childNodes.length > 0;
-  if(hasHeadLeft || hasHeadMeta){
-    head.appendChild(left);
-    post.appendChild(head);
-  }
+  if(meta.childNodes.length) left.appendChild(meta);
+  const hasHeadLeft = (left.textContent || "").trim().length > 0;
+  if(hasHeadLeft){ head.appendChild(left); main.appendChild(head); }
 
+  /* body */
   const bodyEl = document.createElement("div");
   bodyEl.className = "tumblrBody";
   bodyEl.innerHTML = body || "";
   bindZoomableImages(bodyEl);
+  if((bodyEl.textContent || "").trim().length > 0 || bodyEl.querySelector("img, video, audio, iframe")) {
+    main.appendChild(bodyEl);
+  }
 
-  const hasBody = (bodyEl.textContent || "").trim().length > 0 || bodyEl.querySelector("img, video, audio, iframe");
-  if(hasBody) post.appendChild(bodyEl);
-
+  /* signoff */
   const tumblrUrl = p?.url_with_slug || p?.url || "";
   if(tumblrUrl){
     const signoff = document.createElement("div");
     signoff.className = "tumblrSignoff";
     signoff.appendChild(document.createTextNode("- "));
     const a = document.createElement("a");
-    a.href = tumblrUrl;
-    a.target = "_blank";
-    a.rel = "noreferrer";
-    a.textContent = "takuya";
+    a.href = tumblrUrl; a.target = "_blank"; a.rel = "noreferrer"; a.textContent = "takuya";
     signoff.appendChild(a);
-    post.appendChild(signoff);
+    main.appendChild(signoff);
   }
 
+  post.appendChild(main);
   return post;
 }
 
-// --- UPDATED PAGINATION ENGINE ---
+/* =========================================================
+   PAGINATION
+========================================================= */
+
 function renderTumblrPager(fetchedPosts){
   if(!tumblrFeed) return;
-
-  // Clear old pagers
   tumblrFeed.querySelectorAll(".tumblrPager").forEach(n => n.remove());
   if(getActivePostId()) return;
 
   const isGridMode = (currentTag === "thoughts");
   const numPosts = Array.isArray(fetchedPosts) ? fetchedPosts.length : 0;
 
-  if (isGridMode) {
-    // Hide Load More button if we mathematically reach the end
-    if (tumblrTotal !== null && (tumblrStart + TUMBLR_PAGE_SIZE >= tumblrTotal)) return;
-    if (numPosts === 0) return; 
-
+  if(isGridMode){
+    if(tumblrTotal !== null && (tumblrStart + TUMBLR_PAGE_SIZE >= tumblrTotal)) return;
+    if(numPosts === 0) return;
     const pager = document.createElement("div");
     pager.className = "tumblrPager";
-    pager.style.justifyContent = "center"; 
-
+    pager.style.justifyContent = "center";
     const loadBtn = document.createElement("button");
     loadBtn.type = "button";
     loadBtn.textContent = "load more";
-    loadBtn.addEventListener("click", () => {
-      if(tumblrLoading) return;
-      tumblrStart = tumblrStart + TUMBLR_PAGE_SIZE;
-      loadTumblrFeed().catch(() => {});
-    });
-
+    loadBtn.addEventListener("click", () => { if(tumblrLoading) return; tumblrStart += TUMBLR_PAGE_SIZE; loadTumblrFeed().catch(() => {}); });
     pager.appendChild(loadBtn);
     tumblrFeed.appendChild(pager);
-
   } else {
     const canForward = tumblrStart > 0;
-    
-    // Uses Tumblr's true database count so the button accurately vanishes at the end
     const canBack = tumblrTotal !== null ? (tumblrStart + TUMBLR_PAGE_SIZE < tumblrTotal) : (numPosts > 0);
-
     if(!canForward && !canBack) return;
 
     const pager = document.createElement("div");
@@ -882,205 +735,162 @@ function renderTumblrPager(fetchedPosts){
     if(canBack){
       const backBtn = document.createElement("button");
       backBtn.type = "button";
-      backBtn.textContent = "back in time";
+      backBtn.textContent = "← back in time";
       backBtn.addEventListener("click", () => {
         if(tumblrLoading) return;
-        // SMOOTH SCROLL ADDED HERE:
-        window.scrollTo({ top: 0, behavior: 'smooth' }); 
-        tumblrStart = tumblrStart + TUMBLR_PAGE_SIZE;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        tumblrStart += TUMBLR_PAGE_SIZE;
         loadTumblrFeed().catch(() => {});
       });
       pager.appendChild(backBtn);
-    }else{
-      const spacer = document.createElement("div");
-      spacer.className = "spacer";
-      pager.appendChild(spacer);
+    } else {
+      pager.appendChild(Object.assign(document.createElement("div"), { className: "spacer" }));
     }
 
-    const mid = document.createElement("div");
-    mid.className = "spacer";
-    pager.appendChild(mid);
+    pager.appendChild(Object.assign(document.createElement("div"), { className: "spacer" }));
 
     if(canForward){
       const forwardBtn = document.createElement("button");
       forwardBtn.type = "button";
-      forwardBtn.textContent = "forward in time";
+      forwardBtn.textContent = "forward in time →";
       forwardBtn.addEventListener("click", () => {
         if(tumblrLoading) return;
-        // SMOOTH SCROLL ADDED HERE:
-        window.scrollTo({ top: 0, behavior: 'smooth' }); 
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         tumblrStart = Math.max(0, tumblrStart - TUMBLR_PAGE_SIZE);
         loadTumblrFeed().catch(() => {});
       });
       pager.appendChild(forwardBtn);
     }
+
+    tumblrFeed.appendChild(pager);
   }
 }
 
+/* =========================================================
+   LOAD FEED
+========================================================= */
+
 async function loadTumblrFeed(){
-  if(!tumblrFeed) return;
-  if(tumblrLoading) return;
-
+  if(!tumblrFeed || tumblrLoading) return;
   tumblrLoading = true;
+
   const activePostId = getActivePostId();
-  const isGridMode = (currentTag === "thoughts" && !activePostId);
-  const isLoadMore = (isGridMode && tumblrStart > 0);
+  const isGridMode   = (currentTag === "thoughts" && !activePostId);
+  const isEssayMode  = (currentTag === "essays" && !activePostId);
+  const isLoadMore   = (isGridMode && tumblrStart > 0);
 
-  if (isGridMode) {
-    tumblrFeed.classList.add("grid-mode");
-  } else {
-    tumblrFeed.classList.remove("grid-mode");
-  }
+  if(isGridMode)       tumblrFeed.classList.add("grid-mode");
+  else                 tumblrFeed.classList.remove("grid-mode");
 
-  if (currentTag === "" && !activePostId) {
-    document.body.classList.add("is-newest");
-  } else {
-    document.body.classList.remove("is-newest");
-  }
+  if(isEssayMode)      tumblrFeed.classList.add("essay-mode");
+  else                 tumblrFeed.classList.remove("essay-mode");
 
-  if (activePostId) {
-    document.body.classList.add("is-single-post");
-  } else {
-    document.body.classList.remove("is-single-post");
-  }
+  if(currentTag === "" && !activePostId) document.body.classList.add("is-newest");
+  else                                   document.body.classList.remove("is-newest");
+
+  if(activePostId) document.body.classList.add("is-single-post");
+  else             document.body.classList.remove("is-single-post");
 
   try{
-    if (!isLoadMore) {
+    if(!isLoadMore){
       tumblrFeed.innerHTML = '<div class="feedMessage">Loading...</div>';
     } else {
       const loader = document.createElement("div");
       loader.className = "feedMessage loader-msg";
       loader.textContent = "Loading...";
-      loader.style.gridColumn = "1 / -1"; 
+      loader.style.gridColumn = "1 / -1";
       tumblrFeed.appendChild(loader);
     }
 
-    const url = tumblrJsonUrl({
-      start: tumblrStart,
-      num: TUMBLR_PAGE_SIZE,
-      id: activePostId || null,
-      tag: currentTag 
-    });
-
+    const url = tumblrJsonUrl({ start: tumblrStart, num: TUMBLR_PAGE_SIZE, id: activePostId || null, tag: currentTag });
     const raw = await fetchRaw(url);
     const data = parseTumblrJsonp(raw);
 
     const pt = data["posts-total"] || data.posts_total;
-    tumblrTotal = Number.isFinite(Number(pt)) ? Number(pt) : tumblrTotal;
+    if(Number.isFinite(Number(pt))) tumblrTotal = Number(pt);
 
     const posts = Array.isArray(data?.posts) ? data.posts : [];
-    
-    if (!isLoadMore) {
-      tumblrFeed.innerHTML = "";
-    } else {
-      const existingLoader = tumblrFeed.querySelector('.loader-msg');
-      if (existingLoader) existingLoader.remove();
-    }
+
+    if(!isLoadMore){ tumblrFeed.innerHTML = ""; }
+    else { const el = tumblrFeed.querySelector('.loader-msg'); if(el) el.remove(); }
 
     if(!posts.length){
-      if(tumblrStart === 0) {
-         tumblrFeed.innerHTML = '<div class="feedMessage">No posts found in this collection.</div>';
-      } else if (!isLoadMore) {
-         tumblrFeed.innerHTML = '<div class="feedMessage">You have reached the very beginning of the archive.</div>';
-         renderTumblrPager([]); 
-      } else {
-         const endMsg = document.createElement("div");
-         endMsg.className = "feedMessage";
-         endMsg.textContent = "End of archive.";
-         endMsg.style.gridColumn = "1 / -1";
-         tumblrFeed.appendChild(endMsg);
-      }
+      if(tumblrStart === 0) tumblrFeed.innerHTML = '<div class="feedMessage">No posts found in this collection.</div>';
+      else if(!isLoadMore){ tumblrFeed.innerHTML = '<div class="feedMessage">You have reached the very beginning of the archive.</div>'; renderTumblrPager([]); }
+      else { const e = document.createElement("div"); e.className = "feedMessage"; e.textContent = "End of archive."; e.style.gridColumn = "1 / -1"; tumblrFeed.appendChild(e); }
       return;
     }
 
     if(activePostId){
       const p = posts[0];
       const el = buildTumblrPostElement(p);
-      
       el.classList.add("single-post-view");
-      
       tumblrFeed.appendChild(el);
-
       const backBtn = document.createElement("button");
       backBtn.className = "yzyBackBtn";
       backBtn.textContent = "← back to feed";
-      backBtn.addEventListener("click", () => {
-        window.location.hash = "";
-      });
+      backBtn.addEventListener("click", () => { window.location.hash = ""; });
       tumblrFeed.appendChild(backBtn);
-
       const inner = buildPostInner(p);
       const postTitle = inner.title || deriveTitle(p, inner);
       const postDesc = stripHtml(inner.html).substring(0, 160) + "...";
-      
       updateMetaTags(postTitle, postDesc);
       return;
     }
 
     updateMetaTags("", "");
-
     posts.forEach(p => tumblrFeed.appendChild(buildTumblrPostElement(p)));
-    
     renderTumblrPager(posts);
 
   }catch(e){
     console.error(e);
-    if (!isLoadMore) {
-      tumblrFeed.innerHTML = '<div class="feedMessage">Unable to load feed.</div>';
-    } else {
-      const existingLoader = tumblrFeed.querySelector('.loader-msg');
-      if (existingLoader) existingLoader.textContent = "Unable to load more.";
-    }
+    if(!isLoadMore) tumblrFeed.innerHTML = '<div class="feedMessage">Unable to load feed.</div>';
+    else { const el = tumblrFeed.querySelector('.loader-msg'); if(el) el.textContent = "Unable to load more."; }
   }finally{
     tumblrLoading = false;
   }
 }
 
+/* =========================================================
+   ROUTE
+========================================================= */
+
 function onRouteChange(){
   tumblrStart = 0;
-  
   const hashTag = getTagFromHash();
-  const postId = parsePrettyHash();
+  const postId  = parsePrettyHash();
 
-  if (hashTag) {
+  if(hashTag){
     currentTag = hashTag;
-    
     document.querySelectorAll(".catBtn").forEach(b => b.classList.remove("active"));
     const activeBtn = document.querySelector(`.catBtn[data-tag='${hashTag}']`);
-    if (activeBtn) activeBtn.classList.add("active");
-    
-  } else if (!postId) {
+    if(activeBtn) activeBtn.classList.add("active");
+  } else if(!postId){
     currentTag = "";
     document.querySelectorAll(".catBtn").forEach(b => b.classList.remove("active"));
     const activeBtn = document.querySelector(`.catBtn[data-tag='']`);
-    if (activeBtn) activeBtn.classList.add("active");
+    if(activeBtn) activeBtn.classList.add("active");
   }
 
   loadTumblrFeed().catch(() => {});
 }
 
 /* =========================================================
-   CATEGORY NAV & RANDOM LOGIC
+   CATEGORY NAV + RANDOM
 ========================================================= */
 
 function setupCategoryNav(){
-  const buttons = document.querySelectorAll(".catBtn");
-  
+  /* exclude page-link anchors (tools, library) — they navigate naturally */
+  const buttons = document.querySelectorAll(".catBtn:not(.page-link)");
+
   buttons.forEach(btn => {
     btn.addEventListener("click", () => {
-      
-      if(btn.id === "randomBtn"){
-         fetchRandomPost();
-         return;
-      }
-
+      if(btn.id === "randomBtn"){ fetchRandomPost(); return; }
       const tag = btn.dataset.tag || "";
-      
-      if (tag) {
-        window.location.hash = tag; 
-      } else {
+      if(tag){ window.location.hash = tag; }
+      else {
         history.pushState("", document.title, window.location.pathname + window.location.search);
-        onRouteChange(); 
+        onRouteChange();
       }
     });
   });
@@ -1088,33 +898,25 @@ function setupCategoryNav(){
 
 async function fetchRandomPost(){
   if(tumblrLoading) return;
-  tumblrLoading = true; 
-  
+  tumblrLoading = true;
   tumblrFeed.innerHTML = '<div class="feedMessage">Rolling the dice...</div>';
-  
   try {
     const url = tumblrJsonUrl({ start:0, num:1 });
     const raw = await fetchRaw(url);
     const data = parseTumblrJsonp(raw);
-    
     const pt = data["posts-total"] || data.posts_total;
     const total = Number(pt);
-    
     if(!total || isNaN(total)) throw new Error("No posts found");
-
     const randomStart = Math.floor(Math.random() * total);
-    
     const randUrl = tumblrJsonUrl({ start: randomStart, num: 1 });
     const randRaw = await fetchRaw(randUrl);
     const randData = parseTumblrJsonp(randRaw);
     const post = randData.posts[0];
-    
     if(post){
-      currentTag = ""; 
+      currentTag = "";
       document.querySelectorAll(".catBtn").forEach(b => b.classList.remove("active"));
       const allBtn = document.querySelector(".catBtn[data-tag='']");
       if(allBtn) allBtn.classList.add("active");
-
       window.location.hash = prettyHashForPost(post.id, post["regular-title"] || "random");
     }
   } catch(e) {
@@ -1125,74 +927,47 @@ async function fetchRandomPost(){
 }
 
 /* =========================================================
-   GOODREADS WIDGET LINK HIJACKER
+   GOODREADS
 ========================================================= */
 
 function hijackGoodreadsLinks() {
   const widget = document.querySelector(".goodreadsWidget");
-  if (!widget) return;
-
+  if(!widget) return;
   let attempts = 0;
   const interval = setInterval(() => {
     const links = widget.querySelectorAll("a");
-    
-    if (links.length > 0) {
-      links.forEach(a => {
-        a.href = GOODREADS_PROFILE_URL;
-        a.target = "_blank";
-        a.rel = "noopener noreferrer";
-      });
+    if(links.length > 0){
+      links.forEach(a => { a.href = GOODREADS_PROFILE_URL; a.target = "_blank"; a.rel = "noopener noreferrer"; });
       clearInterval(interval);
     }
-
-    attempts++;
-    if (attempts > 40) clearInterval(interval);
+    if(++attempts > 40) clearInterval(interval);
   }, 100);
 }
 
 /* =========================================================
-   CUSTOM CONTEXT MENU
+   CONTEXT MENU
 ========================================================= */
 
 function initContextMenu() {
   const ctxMenu = document.getElementById("yzyContextMenu");
-  if (!ctxMenu) return;
-
+  if(!ctxMenu) return;
   document.addEventListener("contextmenu", (e) => {
     e.preventDefault();
     ctxMenu.style.display = "flex";
-    
     const x = Math.min(e.clientX, window.innerWidth - ctxMenu.offsetWidth);
     const y = Math.min(e.clientY, window.innerHeight - ctxMenu.offsetHeight);
-    
     ctxMenu.style.left = x + "px";
     ctxMenu.style.top = y + "px";
   });
-
-  document.addEventListener("click", (e) => {
-    if (!ctxMenu.contains(e.target)) {
-      ctxMenu.style.display = "none";
-    }
-  });
-
-  window.addEventListener("scroll", () => {
-    ctxMenu.style.display = "none";
-  }, { passive: true });
-
+  document.addEventListener("click", (e) => { if(!ctxMenu.contains(e.target)) ctxMenu.style.display = "none"; });
+  window.addEventListener("scroll", () => { ctxMenu.style.display = "none"; }, { passive: true });
   ctxMenu.querySelectorAll("button").forEach(btn => {
     btn.addEventListener("click", () => {
-      ctxMenu.style.display = "none"; 
-      
+      ctxMenu.style.display = "none";
       const action = btn.dataset.action;
-      
-      if (action === "top") {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else if (action === "random") {
-        fetchRandomPost();
-      } else if (action === "tag") {
-        const tag = btn.dataset.tag;
-        if (tag) window.location.hash = tag;
-      }
+      if(action === "top")    window.scrollTo({ top: 0, behavior: 'smooth' });
+      else if(action === "random") fetchRandomPost();
+      else if(action === "tag") { const tag = btn.dataset.tag; if(tag) window.location.hash = tag; }
     });
   });
 }
@@ -1203,29 +978,20 @@ function initContextMenu() {
 
 function init(){
   if(yearEl) yearEl.textContent = new Date().getFullYear();
-
   updateClock();
   updateOnline();
   tickBpm();
-
   setInterval(updateClock, 1000 * 10);
   setInterval(tickBpm, 250);
-
   window.addEventListener("online", updateOnline);
   window.addEventListener("offline", updateOnline);
-
   window.addEventListener("scroll", () => tickBpm(), { passive: true });
-
   window.addEventListener("hashchange", onRouteChange);
   window.addEventListener("popstate", onRouteChange);
-
   onRouteChange();
-
   loadLatest4FromRss().catch(() => {});
   loadSubs().catch(() => {});
-
   runTypewriter(statusElTop, STATUS_ITEMS).catch(() => {});
-
   hijackGoodreadsLinks();
   setupCategoryNav();
   initContextMenu();
@@ -1233,6 +999,6 @@ function init(){
 
 if(document.readyState === "loading"){
   document.addEventListener("DOMContentLoaded", init);
-}else{
+} else {
   init();
 }
