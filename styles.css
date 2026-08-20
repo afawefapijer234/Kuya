@@ -70,6 +70,7 @@ a, button {
 
 a:hover, button:hover { color: var(--accent); }
 
+/* ── TOPBAR ── */
 .topbar{
   position: relative;
   z-index: 100;
@@ -149,6 +150,7 @@ a:hover, button:hover { color: var(--accent); }
 @keyframes caretBlink{ 50%{ opacity: 0; } }
 @media (prefers-reduced-motion: reduce){ .statusMsg::after{ animation: none; } }
 
+/* ── CATEGORY NAV ── */
 .categoryNav {
   gap: 12px;
   flex-wrap: nowrap;
@@ -162,175 +164,537 @@ a:hover, button:hover { color: var(--accent); }
 .catBtn { flex-shrink: 0; letter-spacing: .06em; }
 .catBtn.active { color: var(--accent); }
 
+/* page links (tools, library) — in nav after separator */
 .nav-sep { color: var(--muted); opacity: .25; font-size: 13px; flex-shrink: 0; }
 .catBtn.page-link { opacity: .7; text-decoration: none; }
 .catBtn.page-link:hover { opacity: 1; color: var(--accent); }
 
+/* ── BPM ── */
 .bpmLine { color: var(--accent); letter-spacing: .01em; display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
 .bpm-heart { font-size: 11px; }
 
+/* ── FADE LOGIC (non-latest views) ── */
 body:not(.is-newest) .goodreads,
-body:not(.is-newest) .feed .feedKicker { display: none; }
+body:not(.is-newest) .feed .feedKicker {
+  display: none;
+}
 body:not(.is-newest) .inlineSocials,
 body:not(.is-newest) .statusRow,
 body:not(.is-newest) .categoryNav,
-body:not(.is-newest) .topbarRight { opacity: 0; pointer-events: none; transition: opacity 1.5s ease; }
+body:not(.is-newest) .topbarRight {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.5s ease;
+}
 body:not(.is-newest) .topbar:hover .inlineSocials,
 body:not(.is-newest) .topbar:hover .statusRow,
 body:not(.is-newest) .topbar:hover .categoryNav,
-body:not(.is-newest) .topbar:hover .topbarRight { opacity: 1; pointer-events: auto; transition: opacity 0.2s ease; }
+body:not(.is-newest) .topbar:hover .topbarRight {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.2s ease;
+}
 body.is-single-post .inlineSocials,
 body.is-single-post .statusRow,
 body.is-single-post .categoryNav,
-body.is-single-post .topbarRight { display: none !important; }
+body.is-single-post .topbarRight {
+  display: none !important;
+}
 
+/* ── MAIN WRAP ── */
 .wrap { position: relative; z-index: 10; max-width: 700px; margin: 0 auto; padding: 0 18px 60px; }
-.feedMessage { color: var(--muted); text-align: center; padding: 40px 0; font-style: italic; }
-.feed { border-top: 1px solid transparent; }
-.feedKicker { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: rgba(0,0,0,.28); padding: 0 0 8px; }
 
+.feedMessage {
+  color: var(--muted);
+  text-align: center;
+  padding: 40px 0;
+  font-style: italic;
+}
+
+.feed { border-top: 1px solid transparent; }
+.feedKicker {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: rgba(0,0,0,.28);
+  padding: 0 0 8px;
+}
+
+/* ── TUMBLR FEED ── */
 .tumblrFeed { display: flex; flex-direction: column; }
 
-.tumblrPost { display: flex; align-items: flex-start; padding: 20px 0; border-bottom: 1px solid rgba(0,0,0,.06); }
+/* ── POST BASE ── */
+.tumblrPost {
+  display: flex;
+  align-items: flex-start;
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(0,0,0,.06);
+}
 .tumblrPost:last-child { border-bottom: none; }
 
-.post-av { display: none; width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,.07); flex-shrink: 0; margin-right: 12px; margin-top: 2px; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--muted); overflow: hidden; }
+/* ── TWITTER LAYOUT ── */
+/* Avatar circle */
+.post-av {
+  display: none;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.07);
+  flex-shrink: 0;
+  margin-right: 12px;
+  margin-top: 2px;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  overflow: hidden;
+}
 body.tw-layout .post-av { display: flex; }
 
-.tw-name { display: none; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+/* Name line */
+.tw-name {
+  display: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 4px;
+}
 .tw-handle { font-size: 12px; color: var(--muted); margin-left: 4px; font-weight: 400; }
 body.tw-layout .tw-name { display: block; }
 
+/* Content wrapper */
 .post-main { flex: 1; min-width: 0; }
 
+/* ── POST HEAD ── */
 .tumblrHead { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
 .tumblrHeadLeft { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
 .tumblrMeta { display: inline-flex; align-items: center; gap: 10px; }
 
-.tumblrTag { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; background: rgba(0,0,0,.07); color: rgba(0,0,0,.52); padding: 2px 7px; border-radius: 4px; display: inline-block; }
+/* tag pill */
+.tumblrTag {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  background: rgba(0,0,0,.07);
+  color: rgba(0,0,0,.52);
+  padding: 2px 7px;
+  border-radius: 4px;
+  display: inline-block;
+}
 
-.tumblrPost.single-post-view .tumblrHead { align-items: center; text-align: center; margin-bottom: 36px; }
+.tumblrPost.single-post-view .tumblrHead {
+  align-items: center;
+  text-align: center;
+  margin-bottom: 36px;
+}
 .tumblrPost.single-post-view .tumblrHeadLeft { align-items: center; }
+.tumblrPost.single-post-view .tumblrTag { display: none; }
+.tumblrPost.single-post-view .tw-name { display: none; }
 
-.tumblrPostTitle { display: inline-block; font-size: 20px; font-weight: 700; color: var(--muted); line-height: 1.3; margin-bottom: 2px; text-decoration: none; transition: color 0.2s ease; letter-spacing: -.01em; }
+.tumblrPostTitle {
+  display: inline-block;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--muted);
+  line-height: 1.3;
+  margin-bottom: 2px;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  letter-spacing: -.01em;
+}
 .tumblrPostTitle:hover { color: var(--accent); }
 
-.tumblrPostDate { font-size: 12px; opacity: 0.55; color: var(--muted); }
+/* date — always visible */
+.tumblrPostDate {
+  font-size: 12px;
+  opacity: 0.55;
+  color: var(--muted);
+}
 
-.tumblrShareInline { font-size: 12px; opacity: 0; color: var(--muted); transition: opacity .18s ease; }
+.tumblrShareInline {
+  font-size: 12px;
+  opacity: 0;
+  color: var(--muted);
+  transition: opacity .18s ease;
+}
 .tumblrPost:hover .tumblrShareInline { opacity: 1; }
 .tumblrShareInline { text-decoration: underline; text-underline-offset: 3px; }
 
+/* ── POST BODY ── */
 .tumblrBody { font-size: 15px; color: var(--muted); margin-top: 10px; line-height: 1.6; overflow-wrap: anywhere; }
 .tumblrBody h1, .tumblrBody h2, .tumblrBody h3 { font-weight: 600; font-size: 16px; margin: 0 0 10px; }
 .tumblrBody p { margin: 0 0 10px; }
 .tumblrBody blockquote { margin: 10px 0; padding-left: 12px; border-left: 2px solid rgba(0,0,0,.12); opacity: .9; }
 .tumblrBody a { text-decoration: underline; text-underline-offset: 3px; }
 
-.img-cell { background: rgba(0,0,0,.05); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--muted); cursor: zoom-in; overflow: hidden; transition: filter .15s; }
+/* ── TWITTER-SPEC IMAGE CONTAINERS ── */
+/* shared cell */
+.img-cell {
+  background: rgba(0,0,0,.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: zoom-in;
+  overflow: hidden;
+  transition: filter .15s;
+}
 .img-cell:hover { filter: brightness(.92); }
 .img-cell img { width: 100%; height: 100%; object-fit: cover; display: block; cursor: zoom-in; }
 
-.pimg-1 { margin-top: 12px; border-radius: 14px; overflow: hidden; width: 100%; height: 285px; }
+/* 1 image — 16:9, 285px cap */
+.pimg-1 {
+  margin-top: 12px;
+  border-radius: 14px;
+  overflow: hidden;
+  width: 100%;
+  height: 285px;
+}
 .pimg-1 .img-cell { width: 100%; height: 100%; border-radius: 14px; }
 
-.pimg-2 { margin-top: 12px; border-radius: 14px; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; gap: 2px; height: 285px; }
-.pimg-2 .img-cell:first-child { border-radius: 14px 0 0 14px; }
-.pimg-2 .img-cell:last-child { border-radius: 0 14px 14px 0; }
+/* 2 images — side by side */
+.pimg-2 {
+  margin-top: 12px;
+  border-radius: 14px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  height: 285px;
+}
+.pimg-2 .img-cell:first-child  { border-radius: 14px 0 0 14px; }
+.pimg-2 .img-cell:last-child   { border-radius: 0 14px 14px 0; }
 
-.pimg-3 { margin-top: 12px; border-radius: 14px; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; height: 285px; }
-.pimg-3 .img-cell:first-child { grid-row: 1 / 3; border-radius: 14px 0 0 14px; }
+/* 3 images — tall left + two stacked right */
+.pimg-3 {
+  margin-top: 12px;
+  border-radius: 14px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 2px;
+  height: 285px;
+}
+.pimg-3 .img-cell:first-child  { grid-row: 1 / 3; border-radius: 14px 0 0 14px; }
 .pimg-3 .img-cell:nth-child(2) { border-radius: 0 14px 0 0; }
 .pimg-3 .img-cell:nth-child(3) { border-radius: 0 0 14px 0; }
 
-.pimg-4 { margin-top: 12px; border-radius: 14px; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; height: 285px; }
+/* 4 images — 2×2 grid */
+.pimg-4 {
+  margin-top: 12px;
+  border-radius: 14px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 2px;
+  height: 285px;
+}
 .pimg-4 .img-cell:nth-child(1) { border-radius: 14px 0 0 0; }
 .pimg-4 .img-cell:nth-child(2) { border-radius: 0 14px 0 0; }
 .pimg-4 .img-cell:nth-child(3) { border-radius: 0 0 0 14px; }
 .pimg-4 .img-cell:nth-child(4) { border-radius: 0 0 14px 0; }
 
-.tumblrBody figure.tmblr-full, .tumblrBody figure.tmblr-embed { position: relative; display: block; width: 100% !important; margin: 16px 0 !important; border-radius: 14px; box-shadow: 0 12px 32px rgba(0,0,0,0.08); overflow: hidden; }
-.tumblrBody figure.tmblr-full::after, .tumblrBody figure.tmblr-embed::after { content: ""; position: absolute; inset: 0; border-radius: 14px; pointer-events: none; border: 5px solid rgba(255,255,255,0.24); }
-.tumblrBody figure img, .tumblrBody img { display: block; width: 100%; height: auto; margin: 16px 0; cursor: zoom-in; border-radius: 14px; }
+/* legacy figure wrapper (keep for older posts) */
+.tumblrBody figure.tmblr-full,
+.tumblrBody figure.tmblr-embed {
+  position: relative;
+  display: block;
+  width: 100% !important;
+  margin: 16px 0 !important;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+.tumblrBody figure.tmblr-full::after,
+.tumblrBody figure.tmblr-embed::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  pointer-events: none;
+  border: 5px solid rgba(255, 255, 255, 0.24);
+}
+.tumblrBody figure img,
+.tumblrBody img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 16px 0;
+  cursor: zoom-in;
+  border-radius: 14px;
+}
 .tumblrBody figure img { margin: 0 !important; outline: none; box-shadow: none; }
-.tumblrBody > img, .tumblrBody p > img, .tumblrPhotoGrid img { box-shadow: inset 0 0 0 5px rgba(255,255,255,0.24), 0 12px 32px rgba(0,0,0,0.08); }
+.tumblrBody > img,
+.tumblrBody p > img,
+.tumblrPhotoGrid img {
+  box-shadow: inset 0 0 0 5px rgba(255, 255, 255, 0.24), 0 12px 32px rgba(0, 0, 0, 0.08);
+}
 
+/* legacy photo grid (keep for posts not using new containers) */
 .tumblrPhotoGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 12px 0; }
+
 .tumblrCaption { font-size: 13px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+
 .tumblrSignoff { font-style: italic; letter-spacing: .04em; margin-top: 12px; text-align: center; color: rgba(0,0,0,.55); }
 .tumblrSignoff a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 
-.tumblrFeed.grid-mode { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.tumblrFeed.grid-mode .tumblrPost { aspect-ratio: 1/1; margin-bottom: 0; padding: 16px; background: rgba(255,255,255,0.4); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(0,0,0,0.04); border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.03); overflow: hidden; position: relative; cursor: pointer; transform-style: preserve-3d; will-change: transform; transition: transform 0.5s cubic-bezier(0.23,1,0.32,1), background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; display: block; }
-.tumblrFeed.grid-mode .post-av, .tumblrFeed.grid-mode .tw-name { display: none !important; }
-.tiltGlare { position: absolute; inset: 0; border-radius: 16px; pointer-events: none; opacity: 0; transition: opacity 0.2s ease; z-index: 2; }
-.tumblrFeed.grid-mode .tumblrPost:hover { transform: translateY(-2px); background: rgba(255,255,255,0.7); border-color: rgba(0,0,0,0.08); box-shadow: 0 12px 32px rgba(0,0,0,0.06); }
+/* ── NOTES (thoughts) GRID MODE ── */
+.tumblrFeed.grid-mode {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.tumblrFeed.grid-mode .tumblrPost {
+  aspect-ratio: 1 / 1;
+  margin-bottom: 0;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.03);
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 0.5s cubic-bezier(0.23,1,0.32,1), background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  /* hide avatar/name in grid mode */
+  display: block;
+}
+.tumblrFeed.grid-mode .post-av,
+.tumblrFeed.grid-mode .tw-name { display: none !important; }
+
+.tiltGlare {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 2;
+}
+.tumblrFeed.grid-mode .tumblrPost:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.06);
+}
 .tumblrFeed.grid-mode .tumblrPost:first-child { padding-top: 16px; }
-.tumblrFeed.grid-mode .tumblrPost::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 54px; background: linear-gradient(to bottom, rgba(251,250,247,0), rgba(251,250,247,0.95) 90%); pointer-events: none; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; }
+.tumblrFeed.grid-mode .tumblrPost::after {
+  content: "";
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 54px;
+  background: linear-gradient(to bottom, rgba(251,250,247,0), rgba(251,250,247,0.95) 90%);
+  pointer-events: none;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
 .tumblrFeed.grid-mode .tumblrPostTitle { font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
-.tumblrFeed.grid-mode .tumblrMeta, .tumblrFeed.grid-mode .tumblrSignoff { display: none; }
-.tumblrFeed.grid-mode .tumblrPager { grid-column: 1/-1; display: flex; margin-top: 16px; }
+.tumblrFeed.grid-mode .tumblrMeta,
+.tumblrFeed.grid-mode .tumblrSignoff { display: none; }
+.tumblrFeed.grid-mode .tumblrPager { grid-column: 1 / -1; display: flex; margin-top: 16px; }
 
-.tumblrFeed.essay-mode .tumblrPost { padding: 20px 0; border-bottom: 1px solid rgba(0,0,0,.06); display: flex; align-items: flex-start; }
-.tumblrFeed.essay-mode .tumblrPostTitle { font-size: 20px; font-weight: 600; color: var(--text); letter-spacing: -.01em; }
-.tumblrFeed.essay-mode .tumblrBody { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+/* ── ESSAY MODE (plain list) ── */
+.tumblrFeed.essay-mode .tumblrPost {
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(0,0,0,.06);
+  display: flex;
+  align-items: flex-start;
+}
+.tumblrFeed.essay-mode .tumblrPostTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -.01em;
+}
+.tumblrFeed.essay-mode .tumblrBody {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
+/* ── PAGINATION ── */
 .tumblrPager { justify-content: space-between; gap: 12px; padding: 18px 0 4px; margin-top: 14px; }
 .tumblrPager .spacer { flex: 1; }
-.tumblrPager button { background: rgba(255,255,255,0.4); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(0,0,0,.08); border-radius: 999px; padding: 8px 16px; opacity: .85; box-shadow: 0 4px 12px rgba(0,0,0,.02); transition: all 0.2s ease; }
-.tumblrPager button:hover { opacity: 1; background: rgba(255,255,255,0.8); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,.05); }
+.tumblrPager button {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 999px;
+  padding: 8px 16px;
+  opacity: .85;
+  box-shadow: 0 4px 12px rgba(0,0,0,.02);
+  transition: all 0.2s ease;
+}
+.tumblrPager button:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.8);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,.05);
+}
 .tumblrPager button[disabled] { opacity: .35; pointer-events: none; transform: none; box-shadow: none; }
 
-.yzyBackBtn { display: block; margin: 40px auto 32px; text-align: center; color: var(--muted); font-size: 13px; background: none; border: none; padding: 0; transition: color 0.2s ease; cursor: pointer; }
+/* ── SINGLE POST ── */
+.yzyBackBtn {
+  display: block;
+  margin: 40px auto 32px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  background: none;
+  border: none;
+  padding: 0;
+  transition: color 0.2s ease;
+  cursor: pointer;
+}
 .yzyBackBtn:hover { color: var(--accent); }
 
-.yzy-context-menu { position: fixed; display: none; flex-direction: column; background: rgba(255,255,255,0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(0,0,0,0.06); border-radius: 12px; box-shadow: 0 12px 32px rgba(0,0,0,0.08); padding: 8px; z-index: 9999; min-width: 160px; }
-.yzy-context-menu button { text-align: left; padding: 8px 16px; color: var(--text); font-size: 13px; border-radius: 8px; transition: background 0.2s, transform 0.2s, color 0.2s; }
-.yzy-context-menu button:hover { background: rgba(0,0,0,0.04); color: var(--accent); transform: translateX(4px); }
+/* ── CONTEXT MENU ── */
+.yzy-context-menu {
+  position: fixed;
+  display: none;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+  padding: 8px;
+  z-index: 9999;
+  min-width: 160px;
+}
+.yzy-context-menu button {
+  text-align: left;
+  padding: 8px 16px;
+  color: var(--text);
+  font-size: 13px;
+  border-radius: 8px;
+  transition: background 0.2s, transform 0.2s, color 0.2s;
+}
+.yzy-context-menu button:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--accent);
+  transform: translateX(4px);
+}
 
+/* ── LIGHTBOX ── */
 #imgLightbox { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 9999; background: rgba(0,0,0,.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); padding: 24px; }
 #imgLightbox.open { display: flex; }
 #imgLightbox .lbInner { max-width: min(1200px, 96vw); max-height: 92vh; display: grid; gap: 10px; justify-items: end; }
 #imgLightbox img { max-width: min(1200px, 96vw); max-height: 88vh; border-radius: 14px; background: rgba(255,255,255,.04); }
-#imgLightbox .lbClose { background: rgba(255,255,255,.14); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: rgba(255,255,255,.92); border-radius: 999px; padding: 8px 16px; transition: background 0.2s; }
+#imgLightbox .lbClose {
+  background: rgba(255,255,255,.14);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: rgba(255,255,255,.92);
+  border-radius: 999px;
+  padding: 8px 16px;
+  transition: background 0.2s;
+}
 #imgLightbox .lbClose:hover { background: rgba(255,255,255,.25); }
 
+/* ── GOODREADS ── */
 .goodreads { margin-bottom: 24px; }
 .goodreadsWidget { margin-top: 6px; }
 .goodreadsWidget .gr_grid_container { width: 100% !important; }
 .goodreadsWidget .gr_grid_book_container { display: inline-block !important; width: 39px !important; height: 60px !important; margin: 0 10px 10px 0 !important; padding: 0 !important; float: none !important; }
 .goodreadsWidget .gr_grid_book_container img { width: 39px !important; height: 60px !important; object-fit: cover; border-radius: 6px; display: block; }
 
-@media (max-width: 768px) { body:not(.is-newest):not(.is-single-post) .inlineSocials, body:not(.is-newest):not(.is-single-post) .statusRow, body:not(.is-newest):not(.is-single-post) .categoryNav, body:not(.is-newest):not(.is-single-post) .topbarRight { opacity: 1 !important; pointer-events: auto !important; } }
-@media (max-width: 640px) { .tumblrPhotoGrid { grid-template-columns: 1fr; } .tumblrFeed.grid-mode { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 520px) { .topbar { padding: 18px 10px 0; } .wrap { padding-left: 10px; padding-right: 10px; } .topbarRight { min-width: auto; } .categoryNav { gap: 10px; margin-top: 8px; } .tumblrFeed.grid-mode { grid-template-columns: repeat(2, 1fr); } .post-av { width: 30px; height: 30px; font-size: 11px; } }
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  body:not(.is-newest):not(.is-single-post) .inlineSocials,
+  body:not(.is-newest):not(.is-single-post) .statusRow,
+  body:not(.is-newest):not(.is-single-post) .categoryNav,
+  body:not(.is-newest):not(.is-single-post) .topbarRight {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+}
+@media (max-width: 640px) {
+  .tumblrPhotoGrid { grid-template-columns: 1fr; }
+  .tumblrFeed.grid-mode { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 520px) {
+  .topbar { padding: 18px 10px 0; }
+  .wrap { padding-left: 10px; padding-right: 10px; }
+  .topbarRight { min-width: auto; }
+  .categoryNav { gap: 10px; margin-top: 8px; }
+  .tumblrFeed.grid-mode { grid-template-columns: repeat(2, 1fr); }
+  .post-av { width: 30px; height: 30px; font-size: 11px; }
+}
 
+/* ── TOOLS PAGE STYLES ── */
 .page-wrap { max-width: 700px; margin: 0 auto; padding: 32px 18px 80px; }
-.page-back { font-size: 13px; color: var(--muted); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 32px; transition: color .15s; }
+.page-back {
+  font-size: 13px; color: var(--muted); text-decoration: none;
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-bottom: 32px; transition: color .15s;
+}
 .page-back:hover { color: var(--accent); }
 .page-header { padding-bottom: 24px; border-bottom: 1px solid var(--line); margin-bottom: 32px; }
 .page-header h1 { font-size: 20px; font-weight: 600; color: var(--text); letter-spacing: -.01em; margin-bottom: 4px; }
-.page-header .ph-sub { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; color: var(--muted); }
+.page-header .ph-sub {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px; color: var(--muted);
+}
 
 .tools-section { margin-bottom: 36px; }
-.tools-section-head { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); opacity: .6; margin-bottom: 14px; display: block; }
+.tools-section-head {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); opacity: .6; margin-bottom: 14px; display: block;
+}
 .tool-row { display: flex; align-items: flex-start; gap: 20px; padding: 14px 0; border-bottom: 1px solid var(--line); }
 .tool-row:last-child { border-bottom: none; }
 .tool-info { display: flex; flex-direction: column; gap: 3px; min-width: 130px; flex-shrink: 0; }
-.tool-name-link { font-size: 14px; font-weight: 500; color: var(--text); text-decoration: none; transition: color .15s; display: inline-flex; align-items: center; gap: 4px; }
+.tool-name-link {
+  font-size: 14px; font-weight: 500; color: var(--text);
+  text-decoration: none; transition: color .15s;
+  display: inline-flex; align-items: center; gap: 4px;
+}
 .tool-name-link:hover { color: var(--accent); }
 .tool-name-link .arrow { font-size: 11px; opacity: .45; transition: opacity .15s; }
 .tool-name-link:hover .arrow { opacity: .9; }
-.tool-domain { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 10px; color: var(--muted); opacity: .55; }
+.tool-domain {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px; color: var(--muted); opacity: .55;
+}
 .tool-desc { font-size: 13px; color: var(--muted); line-height: 1.55; flex: 1; padding-top: 1px; }
 
-.lib-section-label { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); opacity: .6; margin: 32px 0 14px; display: block; }
+/* ── LIBRARY PAGE STYLES ── */
+.lib-section-label {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); opacity: .6; margin: 32px 0 14px; display: block;
+}
 .lib-section-label:first-of-type { margin-top: 0; }
 .lib-item { padding: 20px 0; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
 .lib-item:last-child { border-bottom: none; }
 .lib-item .li-meta { display: flex; align-items: center; gap: 10px; }
-.lib-tag { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; background: rgba(0,0,0,.07); color: rgba(0,0,0,.52); padding: 2px 7px; border-radius: 4px; }
+.lib-tag {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+  background: rgba(0,0,0,.07); color: rgba(0,0,0,.52);
+  padding: 2px 7px; border-radius: 4px;
+}
 .li-duration { font-size: 12px; color: var(--muted); }
-.lib-item .li-title { font-size: 20px; font-weight: 600; color: var(--text); text-decoration: none; line-height: 1.3; letter-spacing: -.01em; transition: color .15s; }
+.lib-item .li-title {
+  font-size: 20px; font-weight: 600; color: var(--text);
+  text-decoration: none; line-height: 1.3; letter-spacing: -.01em; transition: color .15s;
+}
 .lib-item:hover .li-title { color: var(--accent); }
-.lib-item .li-note { font-size: 15px; color: var(--muted); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.lib-item .li-note {
+  font-size: 15px; color: var(--muted); line-height: 1.6;
+  display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+}

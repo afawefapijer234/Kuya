@@ -802,7 +802,9 @@ async function loadTumblrFeed(){
       tumblrFeed.appendChild(loader);
     }
 
-    const url = tumblrJsonUrl({ start: tumblrStart, num: TUMBLR_PAGE_SIZE, id: activePostId || null, tag: currentTag });
+    // Essays: fetch all posts and filter client-side for those with titles
+  const fetchTag = (currentTag === 'essays' && !activePostId) ? '' : currentTag;
+  const url = tumblrJsonUrl({ start: tumblrStart, num: TUMBLR_PAGE_SIZE, id: activePostId || null, tag: fetchTag });
     const raw = await fetchRaw(url);
     const data = parseTumblrJsonp(raw);
 
@@ -839,7 +841,20 @@ async function loadTumblrFeed(){
     }
 
     updateMetaTags("", "");
-    posts.forEach(p => tumblrFeed.appendChild(buildTumblrPostElement(p)));
+
+    // Essays mode: filter posts to only those with titles
+    let displayPosts = posts;
+    if (isEssayMode) {
+      displayPosts = posts.filter(p => {
+        const inner = buildPostInner(p);
+        if (inner.title && inner.title.trim()) return true;
+        if (p['regular-title'] && p['regular-title'].trim()) return true;
+        const extracted = extractTitleFromBody(inner.html || '');
+        return extracted.title && extracted.title.trim().length > 0;
+      });
+    }
+
+    displayPosts.forEach(p => tumblrFeed.appendChild(buildTumblrPostElement(p)));
     renderTumblrPager(posts);
 
   }catch(e){
